@@ -86,20 +86,15 @@ add_action(
 					   sit exactly inside the viewport — same fix the Fonts
 					   admin page uses. */
 					#wpbody-content { padding-bottom: 0; }
-					html, body, #wpwrap { background: #1e1e1e; }
-
-					/* Hide the standard WP admin bar on this admin page so the
-					   card extends flush to the very top of the viewport. WP's
-					   default CSS pushes `<html>` down by 32px to make room for
-					   the bar (via `html.wp-toolbar`); we zero that too so no
-					   gap remains. The bar still shows on every other admin
-					   page — this hide is scoped to the inline `<style>` block
-					   that only renders on the Form controls page. (On
-					   WordPress.com sites a separate Calypso chrome bar lives
-					   above wp-admin and is outside our reach — that one will
-					   still appear.) */
-					#wpadminbar { display: none !important; }
-					html.wp-toolbar { padding-top: 0 !important; }
+					/* Paint the dark surround on every ancestor of the
+					   card so any band that briefly shows during scroll
+					   (e.g. body overflow when the admin menu is taller
+					   than the viewport) blends into the gap. Confined to
+					   ancestors of `.ufc-admin-card`, NOT the admin menu
+					   chrome (#adminmenuback / #adminmenuwrap), which has
+					   its own WP styling we don't want to disturb. */
+					html, body, #wpwrap, #wpcontent, #wpbody, #wpbody-content,
+					.wrap.ufc-admin-wrap { background: #1e1e1e !important; }
 
 					.ufc-admin-wrap {
 						/* Override WP .wrap defaults (10px 20px 0 2px) to
@@ -107,8 +102,8 @@ add_action(
 						margin: 0 8px 8px 0;
 						display: flex;
 						flex-direction: column;
-						/* No admin bar (hidden above), 8px gap to viewport edge */
-						min-height: calc(100vh - 8px);
+						/* 32px = WP admin bar, 8px = bottom gap to viewport edge */
+						min-height: calc(100vh - 32px - 8px);
 					}
 					.ufc-admin-card {
 						flex: 1 1 auto;
