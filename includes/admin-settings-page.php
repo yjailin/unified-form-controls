@@ -154,7 +154,96 @@ add_action(
 						border: 0;
 						display: block;
 					}
+
+					/* ─── WordPress.com-specific accommodation ───────────────
+					   Layout bugs (empty space above the card, gap below the
+					   left sidebar) appear on WP.com but not on vanilla WP.
+					   The cause is elements WP.com injects into wp-admin that
+					   a standard install doesn't have. Explicit suppressions
+					   below; a JS measurer further down handles anything
+					   else by recomputing the card height live. */
+
+					/* WP-standard admin notices that can render ABOVE our
+					   card inside #wpbody-content. On WP.com these are more
+					   frequent (Jetpack / WooCommerce / Atomic banners). Hide
+					   any that would push the card down on this admin page.
+					   Scoped via #wpbody-content > … so we only kill notices
+					   ABOVE our .wrap, not any rendered inside the iframe. */
+					#wpbody-content > .notice,
+					#wpbody-content > .update-nag,
+					#wpbody-content > #message,
+					#wpbody-content > .updated,
+					#wpbody-content > .error,
+					#wpbody-content > .wrap > .notice:first-child,
+					#wpbody-content > .wrap > .update-nag:first-child {
+						display: none !important;
+					}
+
+					/* WP.com Calypso proxy occasionally adds a `wpcom-notice`
+					   block or a `.calypsoify`-prefixed bar above .wrap. Hide
+					   any of those too — same intent: keep the card flush. */
+					#wpbody-content > [class*="wpcom-"],
+					#wpbody-content > [id^="wpcom-"],
+					#wpbody-content > .calypsoify {
+						display: none !important;
+					}
+
+					/* WP.com sometimes leaves stray `<br>` and whitespace
+					   text nodes inside #wpbody-content above .wrap — they
+					   collapse to a few pixels but stack up. Strip top
+					   padding/margin to absorb. */
+					#wpbody-content { padding-top: 0 !important; margin-top: 0 !important; }
+					#wpbody { padding-top: 0 !important; }
+
+					/* Belt-and-suspenders: ensure #wpwrap and #adminmenuback
+					   extend to at least full viewport height, so the area
+					   below the admin menu is always painted dark (no light
+					   wp-admin default bleeds through if the menu is shorter
+					   than the viewport). */
+					#wpwrap, #adminmenuback { min-height: 100vh !important; }
 				</style>
+				<script>
+				/* WP.com-aware height measurer. Computes the actual top
+				   offset of `.ufc-admin-wrap` at runtime (after every
+				   notice / Calypso / Atomic injection has rendered) and
+				   sets the card's min-height to fill the remaining
+				   viewport. This is the catch-all for any WP.com-specific
+				   element we haven't explicitly hidden above — whatever
+				   sits between viewport top and the card top, we just
+				   subtract it from the height. */
+				(function () {
+					function recalc() {
+						var wrap = document.querySelector('.ufc-admin-wrap');
+						if (!wrap) return;
+						var top = wrap.getBoundingClientRect().top;
+						/* 8px bottom gap is our intentional surround. */
+						var avail = window.innerHeight - top - 8;
+						if (avail > 0) {
+							wrap.style.minHeight = avail + 'px';
+						}
+					}
+					/* Initial — after CSS has applied. */
+					if (document.readyState === 'loading') {
+						document.addEventListener('DOMContentLoaded', recalc);
+					} else {
+						recalc();
+					}
+					/* Catch late-injected notices (Calypso / WP.com plugins
+					   sometimes add banners post-load via JS). */
+					window.addEventListener('load', recalc);
+					setTimeout(recalc, 250);
+					setTimeout(recalc, 1000);
+					/* Respond to viewport resize (responsive layouts on
+					   WP.com's proxied frame can change height). */
+					window.addEventListener('resize', recalc);
+					/* If anything new gets prepended to #wpbody-content
+					   later, recompute. */
+					if (window.MutationObserver) {
+						var body = document.getElementById('wpbody-content');
+						if (body) new MutationObserver(recalc).observe(body, { childList: true, subtree: false });
+					}
+				})();
+				</script>
 				<?php
 			}
 		);
