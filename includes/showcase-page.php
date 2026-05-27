@@ -118,133 +118,23 @@ add_action( 'template_redirect', function () {
 		</p>
 		<?php endif; ?>
 
-		<nav class="uf-controls" aria-label="Variant controls">
-			<div class="uf-controls__group">
-				<span class="uf-controls__label">Border</span>
-				<button type="button" data-dim="border" data-val="outline" aria-pressed="true">Outline</button>
-				<button type="button" data-dim="border" data-val="underline" aria-pressed="false">Underline</button>
-				<button type="button" data-dim="border" data-val="none" aria-pressed="false">None</button>
-			</div>
-			<div class="uf-controls__group">
-				<span class="uf-controls__label">Fill</span>
-				<button type="button" data-dim="fill" data-val="unfilled" aria-pressed="true">Unfilled</button>
-				<button type="button" data-dim="fill" data-val="filled" aria-pressed="false">Filled</button>
-				<label class="uf-controls__swatch" title="Pick fill color">
-					<input type="color" id="uf-fill-picker" />
-				</label>
-				<button type="button" data-action="reset-fill">Auto</button>
-			</div>
-			<div class="uf-controls__group">
-				<span class="uf-controls__label">Corners</span>
-				<button type="button" data-dim="corners" data-val="sharp" aria-pressed="false">Sharp</button>
-				<button type="button" data-dim="corners" data-val="rounded" aria-pressed="true">Rounded</button>
-				<button type="button" data-dim="corners" data-val="pill" aria-pressed="false">Pill</button>
-			</div>
-			<div class="uf-controls__group">
-				<span class="uf-controls__label">Label</span>
-				<button type="button" data-dim="label" data-val="inside" aria-pressed="true">Inside</button>
-				<button type="button" data-dim="label" data-val="above" aria-pressed="false">Above</button>
-			</div>
-			<div class="uf-controls__group" style="margin-left:auto;">
-				<button type="button" class="uf-controls__save wp-element-button" data-action="save-settings">Update</button>
-				<span class="uf-controls__save-status" aria-live="polite" style="margin-left:8px;font-size:var(--wp--preset--font-size--small);opacity:.75;"></span>
-			</div>
-		</nav>
-		<?php wp_nonce_field( 'uf_save_field_settings', 'uf_save_field_nonce', false ); ?>
 
 		<script>
 		(function () {
 			var root = document.querySelector('.uf-showcase');
 			if (!root) return;
 
-			// Sync toolbar button aria-pressed to reflect the main's
-			// data-* attrs (which are seeded from saved site options on
-			// page load). Without this, the hard-coded `aria-pressed="true"`
-			// on default buttons would visually contradict the actual state.
-			['border','fill','corners','label'].forEach(function (dim) {
-				var cur = root.getAttribute('data-' + dim);
-				root.querySelectorAll('[data-dim="' + dim + '"]').forEach(function (b) {
-					b.setAttribute('aria-pressed', b.getAttribute('data-val') === cur ? 'true' : 'false');
-				});
-			});
-
-			// Fill color picker — updates --wp--custom--field--fill inline so
-			// the existing token fallback resolves to the chosen value.
-			var picker = root.querySelector('#uf-fill-picker');
-			var swatch = root.querySelector('.uf-controls__swatch');
-			if (picker) {
-				picker.addEventListener('input', function () {
-					root.style.setProperty('--wp--custom--field--fill', picker.value);
-					if (swatch) swatch.style.setProperty('--_uf-fill-preview', picker.value);
-					// If a custom color was picked, assume user wants Filled.
-					var filledBtn = root.querySelector('[data-dim="fill"][data-val="filled"]');
-					if (filledBtn && filledBtn.getAttribute('aria-pressed') !== 'true') filledBtn.click();
-				});
-			}
-
-			// Initial mirror: ensure body carries the same variant attrs
-			// as `.uf-showcase` on first render, so popovers / portaled
-			// elements inherit tokens before the user clicks the toolbar.
+			// Mirror the showcase's variant attrs onto <body> on first
+			// render so popovers/portaled elements (e.g. Flatpickr panels
+			// appended to document.body) inherit the same token values.
+			// The settings-panel React component handles ongoing variant
+			// changes via postMessage; this is the initial sync only.
 			['border', 'fill', 'corners', 'label'].forEach(function (dim) {
 				var val = root.getAttribute('data-' + dim);
 				if (val) document.body.setAttribute('data-' + dim, val);
 			});
 
 			root.addEventListener('click', function (e) {
-				// Variant toolbar
-				var vb = e.target.closest('[data-dim][data-val]');
-				if (vb) {
-					var dim = vb.getAttribute('data-dim');
-					var val = vb.getAttribute('data-val');
-					root.setAttribute('data-' + dim, val);
-					// Mirror on <body> so portaled elements (e.g. Flatpickr
-					// popovers appended to document.body) see the same
-					// variant tokens.
-					document.body.setAttribute('data-' + dim, val);
-					root.querySelectorAll('[data-dim="' + dim + '"]').forEach(function (b) {
-						b.setAttribute('aria-pressed', b.getAttribute('data-val') === val ? 'true' : 'false');
-					});
-					// Border = None forces Fill = Filled (an unfilled
-					// borderless field would be invisible).
-					if (dim === 'border' && val === 'none') {
-						var filledBtn = root.querySelector('[data-dim="fill"][data-val="filled"]');
-						if (filledBtn && filledBtn.getAttribute('aria-pressed') !== 'true') filledBtn.click();
-					}
-					return;
-				}
-				// Reset fill color to auto (computed default)
-				var rb = e.target.closest('[data-action="reset-fill"]');
-				if (rb) {
-					root.style.removeProperty('--wp--custom--field--fill');
-					if (swatch) swatch.style.removeProperty('--_uf-fill-preview');
-					return;
-				}
-				// Save current variant choices as the site default. Persists
-				// to WP options (uf_field_border / _fill / _corners / _label)
-				// which wp_body_open injects onto <body> on every page load.
-				var sb = e.target.closest('[data-action="save-settings"]');
-				if (sb) {
-					var status = root.querySelector('.uf-controls__save-status');
-					var nonceEl = document.getElementById('uf_save_field_nonce');
-					var nonce = nonceEl ? nonceEl.value : '';
-					var body = new URLSearchParams();
-					body.set('action', 'uf_save_field_settings');
-					body.set('_nonce', nonce);
-					body.set('border',  root.getAttribute('data-border')  || '');
-					body.set('fill',    root.getAttribute('data-fill')    || '');
-					body.set('corners', root.getAttribute('data-corners') || '');
-					body.set('label',   root.getAttribute('data-label')   || '');
-					if (status) status.textContent = 'Saving…';
-					sb.disabled = true;
-					fetch('<?php echo esc_js( admin_url( 'admin-ajax.php' ) ); ?>', {
-						method: 'POST', credentials: 'same-origin', body: body
-					}).then(function (r) { return r.json(); }).then(function (r) {
-						if (status) status.textContent = r && r.success ? 'Saved — all templates updated on next reload.' : 'Save failed.';
-					}).catch(function () {
-						if (status) status.textContent = 'Save failed.';
-					}).finally(function () { sb.disabled = false; });
-					return;
-				}
 				// Clear input (X button in trailing icon slot)
 				var cb = e.target.closest('[data-action="clear-input"]');
 				if (cb) {
