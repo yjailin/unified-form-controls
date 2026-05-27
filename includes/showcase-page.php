@@ -515,14 +515,14 @@ add_action( 'template_redirect', function () {
 			<h2 id="s-choice">Checkbox &amp; radio</h2>
 			<div class="uf-grid">
 				<div>
-					<label class="uf-check"><input type="checkbox" /> Subscribe to the newsletter</label>
-					<label class="uf-check"><input type="checkbox" checked /> Save this as my default address</label>
-					<label class="uf-check"><input type="checkbox" disabled /> Option unavailable</label>
+					<label class="uf-check"><input type="checkbox" /> Option label</label>
+					<label class="uf-check"><input type="checkbox" checked /> Option label (optional)</label>
+					<label class="uf-check"><input type="checkbox" disabled /> Option label (unavailable)</label>
 				</div>
 				<div>
-					<label class="uf-radio"><input type="radio" name="ship" checked /> Standard shipping</label>
-					<label class="uf-radio"><input type="radio" name="ship" /> Express shipping</label>
-					<label class="uf-radio"><input type="radio" name="ship" disabled /> Same-day (unavailable)</label>
+					<label class="uf-radio"><input type="radio" name="ship" checked /> Option label</label>
+					<label class="uf-radio"><input type="radio" name="ship" /> Option label (optional)</label>
+					<label class="uf-radio"><input type="radio" name="ship" disabled /> Option label (unavailable)</label>
 				</div>
 			</div>
 		</section>
