@@ -96,14 +96,30 @@ add_action(
 					html, body, #wpwrap, #wpcontent, #wpbody, #wpbody-content,
 					.wrap.ufc-admin-wrap { background: #1e1e1e !important; }
 
+					/* Hide the standard WP admin bar on this admin page so the
+					   card sits flush at the very top of the viewport (one
+					   less duplicated bar on WordPress.com, where Calypso
+					   adds its own chrome above). Scoped to this admin
+					   page only via the inline <style> block. Companions:
+					     - Zero `html.wp-toolbar`'s 32px padding so html
+					       content starts at top: 0 (WP reserved that
+					       space for the now-hidden bar).
+					     - Bolstered dark-background paint above absorbs
+					       any body-overflow band that could appear under
+					       the card on sites with very tall admin menus
+					       — the visible color stays #1e1e1e in all cases. */
+					#wpadminbar { display: none !important; }
+					html.wp-toolbar { padding-top: 0 !important; }
+
 					.ufc-admin-wrap {
 						/* Override WP .wrap defaults (10px 20px 0 2px) to
 						   the Fonts page's tighter edge spacing. */
 						margin: 0 8px 8px 0;
 						display: flex;
 						flex-direction: column;
-						/* 32px = WP admin bar, 8px = bottom gap to viewport edge */
-						min-height: calc(100vh - 32px - 8px);
+						/* No admin bar (hidden above), 8px = bottom gap to
+						   viewport edge. */
+						min-height: calc(100vh - 8px);
 					}
 					.ufc-admin-card {
 						flex: 1 1 auto;
