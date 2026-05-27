@@ -25,16 +25,72 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Embed mode — `/?uf_showcase=1&uf_embed=1` is what the Form Controls
  * admin page loads inside its iframe. Suppress the WordPress admin bar
  * so the iframe is a clean preview surface instead of repeating the
- * authoring chrome the user already has around the iframe.
+ * outer admin chrome the user already has around the iframe.
+ *
+ * Defense in depth — `show_admin_bar` alone has proven not enough on
+ * some hosts (notably WordPress.com, where Calypso/proxy layers can
+ * re-engage admin-bar rendering after our filter runs). All four
+ * suppressions below are scoped to the embed URL only, and run on
+ * `init` so they execute before any of the render hooks WordPress
+ * would otherwise use to paint the bar.
+ *
+ *   1. `show_admin_bar` filter → stop the normal render path.
+ *   2. `remove_action( wp_footer / in_admin_header / wp_body_open,
+ *      wp_admin_bar_render )` → strip the actual render callbacks
+ *      that fire even when `show_admin_bar` returns true elsewhere.
+ *   3. Dequeue the `admin-bar` style + script handles → so the bar
+ *      CSS/JS never ship to the browser at all.
+ *   4. Inline `<style>` in `wp_head` → final hard fail-safe; if any
+ *      of the above is bypassed and the bar somehow paints anyway,
+ *      CSS hides it and zeros the toolbar's `<html>` padding so
+ *      nothing else in the iframe shifts down to accommodate it.
  */
+function ufc_is_showcase_embed_request() {
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	return isset( $_GET['uf_showcase'] ) && isset( $_GET['uf_embed'] );
+}
+
 add_filter(
 	'show_admin_bar',
 	function ( $show ) {
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		if ( isset( $_GET['uf_showcase'] ) && isset( $_GET['uf_embed'] ) ) {
-			return false;
+		return ufc_is_showcase_embed_request() ? false : $show;
+	}
+);
+
+add_action(
+	'init',
+	function () {
+		if ( ! ufc_is_showcase_embed_request() ) {
+			return;
 		}
-		return $show;
+		// Strip every action that can render the admin bar — covers
+		// both frontend and admin-screen render hooks.
+		remove_action( 'wp_footer', 'wp_admin_bar_render', 1000 );
+		remove_action( 'in_admin_header', 'wp_admin_bar_render', 0 );
+		remove_action( 'wp_body_open', 'wp_admin_bar_render', 0 );
+		// Block the script/style from loading at all.
+		add_action(
+			'wp_enqueue_scripts',
+			function () {
+				wp_dequeue_style( 'admin-bar' );
+				wp_dequeue_script( 'admin-bar' );
+			},
+			100
+		);
+		// CSS fail-safe — paint a hide rule directly into the iframe's
+		// <head>. Wins over anything that might still try to display
+		// or reserve space for the bar.
+		add_action(
+			'wp_head',
+			function () {
+				echo '<style id="ufc-iframe-no-admin-bar">'
+					. '#wpadminbar{display:none!important}'
+					. 'html{padding-top:0!important;margin-top:0!important}'
+					. 'body{margin-top:0!important}'
+					. '</style>';
+			},
+			999
+		);
 	}
 );
 
