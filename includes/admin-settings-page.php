@@ -86,14 +86,25 @@ add_action(
 					   sit exactly inside the viewport — same fix the Fonts
 					   admin page uses. */
 					#wpbody-content { padding-bottom: 0; }
-					/* Paint the dark surround on every ancestor of the
-					   card so any band that briefly shows during scroll
-					   (e.g. body overflow when the admin menu is taller
-					   than the viewport) blends into the gap. Confined to
-					   ancestors of `.ufc-admin-card`, NOT the admin menu
-					   chrome (#adminmenuback / #adminmenuwrap), which has
-					   its own WP styling we don't want to disturb. */
+					/* Paint the dark surround on every WP-admin element that
+					   could ever show through behind/below the card or the
+					   admin menu. Covers four cases:
+					     1. The 8px gap around the card (right + bottom).
+					     2. Body overflow on sites with a tall admin menu
+					        (when the menu's hover-scroll propagates to the
+					        body, any band that scrolls into view stays
+					        dark instead of revealing WP's light defaults).
+					     3. The empty space below the admin menu on short
+					        menus — #adminmenuback is the element WP draws
+					        behind the menu, and its default extends only
+					        as far as the menu's items; below that, wpwrap
+					        used to show through. Painting them both dark
+					        eliminates any visible boundary.
+					     4. The admin menu's own background on Calypso
+					        proxied sites where it can render lighter than
+					        a standard install. */
 					html, body, #wpwrap, #wpcontent, #wpbody, #wpbody-content,
+					#adminmenuback, #adminmenuwrap, #adminmenu,
 					.wrap.ufc-admin-wrap { background: #1e1e1e !important; }
 
 					.ufc-admin-wrap {

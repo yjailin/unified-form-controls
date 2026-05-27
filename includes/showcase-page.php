@@ -91,6 +91,28 @@ add_action(
 			},
 			999
 		);
+		// JS DOM-removal — last layer. CSS `display:none` only hides
+		// the element; WordPress's accommodation rules (the
+		// `html.wp-toolbar` padding, `body.admin-bar` class, etc.)
+		// can still reserve space for a hidden bar on hosts where
+		// the bar IS injected into the DOM despite all the PHP-side
+		// removals above. So pull the element out of the DOM
+		// entirely and strip the body/html classes that trigger any
+		// further accommodation. Runs both immediately (covers the
+		// case where the bar is already in the parsed HTML by the
+		// time the script executes) and on DOMContentLoaded (covers
+		// the case where some Calypso/WP.com script injects the bar
+		// post-load). Uses a MutationObserver so any later
+		// re-injection is also caught and removed.
+		add_action(
+			'wp_head',
+			function () {
+				echo '<script id="ufc-iframe-purge-admin-bar">'
+					. '(function(){function purge(){var b=document.getElementById("wpadminbar");if(b&&b.parentNode)b.parentNode.removeChild(b);document.documentElement&&document.documentElement.classList.remove("wp-toolbar");document.body&&document.body.classList.remove("admin-bar");}purge();document.addEventListener("DOMContentLoaded",purge);if(window.MutationObserver){new MutationObserver(purge).observe(document.documentElement,{childList:true,subtree:true});}})();'
+					. '</script>';
+			},
+			999
+		);
 	}
 );
 
