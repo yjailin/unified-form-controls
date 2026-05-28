@@ -11,29 +11,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Whether the current request needs the showcase assets + panel emitted.
- *
- * True on either:
- *   - the frontend `/?uf_showcase=1` route (standalone preview);
- *   - the Form Controls admin page (`Appearance > Form controls`), where
- *     the showcase HTML is rendered inline in the admin DOM and needs the
- *     same stylesheets, scripts, and settings panel.
- *
- * Every showcase-only hook in the plugin gates on this single function, so
- * adding the admin page here is enough to make the whole subsystem fire in
- * the admin context without touching individual call sites.
+ * Whether the current request is the showcase page.
  */
 function ufc_showcase_panel_is_active() {
 	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	if ( isset( $_GET['uf_showcase'] ) && '1' === $_GET['uf_showcase'] ) {
-		return true;
-	}
-	// `ufc_is_admin_showcase_page()` lives in admin-settings-page.php — call
-	// guarded in case this file is loaded before that one on early hooks.
-	if ( function_exists( 'ufc_is_admin_showcase_page' ) && ufc_is_admin_showcase_page() ) {
-		return true;
-	}
-	return false;
+	return isset( $_GET['uf_showcase'] ) && '1' === $_GET['uf_showcase'];
 }
 
 /**
@@ -106,14 +88,9 @@ add_filter( 'wp_theme_json_data_user', function ( $theme_json ) {
 } );
 
 /**
- * Load wp-components on the showcase context (frontend route + admin page).
- *
- * Hooked on BOTH `wp_enqueue_scripts` (frontend) and `admin_enqueue_scripts`
- * (admin) so the showcase preview gets its React stack regardless of which
- * surface is rendering. The gate inside (`ufc_showcase_panel_is_active`)
- * narrows to the specific request.
+ * Load wp-components on the showcase page.
  */
-function ufc_enqueue_showcase_panel_assets() {
+add_action( 'wp_enqueue_scripts', function () {
 	if ( ! ufc_showcase_panel_is_active() ) {
 		return;
 	}
@@ -135,18 +112,8 @@ function ufc_enqueue_showcase_panel_assets() {
 			break;
 		}
 	}
-	/*
-	 * `__UF_SHOWCASE_EMBED` switches the panel to its compact rendering
-	 * (bare controls, no `<Panel>` headers, no Style Variation picker).
-	 * Triggered by either:
-	 *   - the legacy `/?uf_showcase=1&uf_embed=1` URL (iframe history), or
-	 *   - rendering inside the admin Form Controls page (inline render —
-	 *     same compact treatment because we don't show the variation
-	 *     picker in admin and the card already supplies a title).
-	 */
 	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	$is_embed = isset( $_GET['uf_embed'] )
-		|| ( function_exists( 'ufc_is_admin_showcase_page' ) && ufc_is_admin_showcase_page() );
+	$is_embed = isset( $_GET['uf_embed'] );
 	wp_add_inline_script(
 		'wp-components',
 		'window.__UF_SHOWCASE_COLORS=' . wp_json_encode( $colors ) . ';'
@@ -155,21 +122,14 @@ function ufc_enqueue_showcase_panel_assets() {
 		. 'window.__UF_SHOWCASE_EMBED=' . wp_json_encode( $is_embed ) . ';',
 		'before'
 	);
-}
-add_action( 'wp_enqueue_scripts',   'ufc_enqueue_showcase_panel_assets' );
-add_action( 'admin_enqueue_scripts', 'ufc_enqueue_showcase_panel_assets' );
+} );
 
 /**
  * Inject the panel markup + rendering script.
  * Priority 99 ensures this runs after wp_print_footer_scripts (priority 20)
  * so wp-components is already in the DOM when our render script executes.
- *
- * Dual-hooked on `wp_footer` (frontend) and `admin_footer` (admin Form
- * Controls page). WordPress fires only one of these on a given request:
- * frontend pages call `wp_footer()`, admin pages call `do_action(
- * 'admin_footer' )` — never both.
  */
-function ufc_render_showcase_settings_panel() {
+add_action( 'wp_footer', function () {
 	if ( ! ufc_showcase_panel_is_active() ) {
 		return;
 	}
@@ -651,6 +611,4 @@ function ufc_render_showcase_settings_panel() {
 	} )();
 	</script>
 	<?php
-}
-add_action( 'wp_footer',    'ufc_render_showcase_settings_panel', 99 );
-add_action( 'admin_footer', 'ufc_render_showcase_settings_panel', 99 );
+}, 99 );

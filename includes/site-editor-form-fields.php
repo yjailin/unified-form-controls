@@ -20,17 +20,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // ---------------------------------------------------------------------------
-// Settings listener — applied wherever the showcase renders.
-//
-// On the frontend (`/?uf_showcase=1`) and inside the Site Editor's canvas
-// iframe, this hooks `wp_footer`. On the Form Controls admin page (where
-// the showcase renders inline in the admin DOM), it hooks `admin_footer`
-// — the admin shell doesn't fire `wp_footer`, only `admin_footer`. Same
-// callback, both hooks; the gate inside narrows to the actual showcase
-// request via `ufc_showcase_panel_is_active()`.
+// postMessage listener on every front-end page (canvas live preview)
 // ---------------------------------------------------------------------------
 
-function ufc_emit_showcase_settings_listener() {
+add_action(
+	'wp_footer',
+	function () {
 		// Showcase-only scope — see plugin main file.
 		if ( ! function_exists( 'ufc_showcase_panel_is_active' ) || ! ufc_showcase_panel_is_active() ) {
 			return;
@@ -113,6 +108,6 @@ function ufc_emit_showcase_settings_listener() {
 		} )();
 		</script>
 		<?php
-}
-add_action( 'wp_footer',    'ufc_emit_showcase_settings_listener', 20 );
-add_action( 'admin_footer', 'ufc_emit_showcase_settings_listener', 20 );
+	},
+	20
+);
