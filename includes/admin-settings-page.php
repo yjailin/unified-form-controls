@@ -99,12 +99,8 @@ add_action(
 						margin: 0 8px 8px 0;
 						display: flex;
 						flex-direction: column;
-						/* Bound to viewport (not min-height) so the card + pane
-						   stay inside the viewport and the showcase scrolls
-						   internally inside its pane rather than scrolling the
-						   entire admin page.
-						   32px = WP admin bar reservation; 8px = bottom gap. */
-						height: calc( 100vh - 32px - 8px );
+						/* 32px = WP admin bar, 8px = bottom gap to viewport edge */
+						min-height: calc( 100vh - 32px - 8px );
 					}
 					.ufc-admin-card {
 						flex: 1 1 auto;
