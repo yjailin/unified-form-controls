@@ -252,8 +252,18 @@ add_action(
 						reclaimReservation();
 						var wrap = document.querySelector('.ufc-admin-wrap');
 						if (!wrap) return;
-						var top = wrap.getBoundingClientRect().top;
-						var avail = window.innerHeight - top - 8;
+						/* Use DOCUMENT position of the wrap, not viewport
+						   position. If the page happens to be scrolled when
+						   recalc() fires (e.g. the iframe's internal load
+						   triggered a scrollIntoView, or the user has
+						   scrolled), `getBoundingClientRect().top` returns
+						   a negative number — and `innerHeight − that − 8`
+						   inflates above the actual available space, making
+						   the card too tall and creating more scroll. Adding
+						   `scrollY` converts back to document coords so the
+						   calculation is stable across any scroll state. */
+						var docTop = wrap.getBoundingClientRect().top + window.scrollY;
+						var avail = window.innerHeight - docTop - 8;
 						if (avail > 0) {
 							wrap.style.minHeight = avail + 'px';
 						}

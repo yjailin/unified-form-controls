@@ -108,8 +108,25 @@ add_action(
 			'wp_head',
 			function () {
 				echo '<script id="ufc-iframe-purge-admin-bar">'
-					. '(function(){function purge(){var b=document.getElementById("wpadminbar");if(b&&b.parentNode)b.parentNode.removeChild(b);document.documentElement&&document.documentElement.classList.remove("wp-toolbar");document.body&&document.body.classList.remove("admin-bar");}purge();document.addEventListener("DOMContentLoaded",purge);if(window.MutationObserver){new MutationObserver(purge).observe(document.documentElement,{childList:true,subtree:true});}})();'
+					. '(function(){function purge(){var b=document.getElementById("wpadminbar");if(b&&b.parentNode)b.parentNode.removeChild(b);if(document.documentElement){document.documentElement.classList.remove("wp-toolbar");document.documentElement.style.setProperty("margin-top","0","important");document.documentElement.style.setProperty("padding-top","0","important");}if(document.body){document.body.classList.remove("admin-bar");document.body.style.setProperty("margin-top","0","important");}}purge();document.addEventListener("DOMContentLoaded",purge);if(window.MutationObserver){new MutationObserver(purge).observe(document.documentElement,{childList:true,subtree:true});}})();'
 					. '</script>';
+			},
+			999
+		);
+		// Footer style block — duplicate of the `wp_head` override,
+		// emitted at the very end of <body> so it appears AFTER any
+		// stylesheet (including `admin-bar.min.css`) that WP.com's
+		// performance optimizer relocates into the body. CSS source
+		// order is the tiebreaker when specificity + !important are
+		// equal, so a `wp_footer` block always wins over a `<body>`
+		// stylesheet on equal-strength rules.
+		add_action(
+			'wp_footer',
+			function () {
+				echo '<style id="ufc-iframe-no-admin-bar-footer">'
+					. 'html{margin-top:0!important;padding-top:0!important}'
+					. 'body{margin-top:0!important}'
+					. '</style>';
 			},
 			999
 		);
