@@ -203,41 +203,70 @@ add_action(
 					#wpwrap, #adminmenuback { min-height: 100vh !important; }
 				</style>
 				<script>
-				/* WP.com-aware height measurer. Computes the actual top
-				   offset of `.ufc-admin-wrap` at runtime (after every
-				   notice / Calypso / Atomic injection has rendered) and
-				   sets the card's min-height to fill the remaining
-				   viewport. This is the catch-all for any WP.com-specific
-				   element we haven't explicitly hidden above — whatever
-				   sits between viewport top and the card top, we just
-				   subtract it from the height. */
+				/* Two responsibilities for this inline script:
+
+				   1. Reclaim the WordPress admin bar's 32px reservation
+				      WHEN the bar isn't actually being rendered.
+
+				      WordPress core sets `html.wp-toolbar { padding-top:
+				      32px }` to reserve space for the fixed `#wpadminbar`
+				      at the top of the viewport. On WordPress.com's
+				      Calypso path (where wp-admin loads inside a Calypso
+				      iframe), Calypso hides `#wpadminbar` via its own
+				      CSS but doesn't undo the 32px reservation — leaving
+				      an empty band above the card. On a direct wp-admin
+				      URL the bar IS visible, so the 32px is correctly
+				      occupied and we leave it alone.
+
+				      Detect by measuring the bar's actual rendered
+				      height: 0 = hidden = zero out the padding;
+				      anything > 0 = visible = leave WP's padding in place.
+
+				   2. Catch-all height measurer for the card.
+
+				      After (1) settles, set `.ufc-admin-wrap.min-height`
+				      to fill `window.innerHeight − wrap.getBoundingClientRect().top − 8px`
+				      so the card always reaches the viewport bottom (minus
+				      the intentional 8px surround). This adapts to any
+				      OTHER element WP.com or a plugin might inject above
+				      the card — no manual selector hunting needed. */
 				(function () {
+					function adminBarVisible() {
+						var bar = document.getElementById('wpadminbar');
+						if (!bar) return false;
+						var cs = getComputedStyle(bar);
+						if (cs.display === 'none' || cs.visibility === 'hidden') return false;
+						return bar.getBoundingClientRect().height > 0;
+					}
+					function reclaimReservation() {
+						/* Only override when the bar IS hidden — otherwise
+						   removing the padding would push the card behind
+						   the visible bar. */
+						if (adminBarVisible()) {
+							document.documentElement.style.removeProperty('padding-top');
+						} else {
+							document.documentElement.style.setProperty('padding-top', '0', 'important');
+						}
+					}
 					function recalc() {
+						reclaimReservation();
 						var wrap = document.querySelector('.ufc-admin-wrap');
 						if (!wrap) return;
 						var top = wrap.getBoundingClientRect().top;
-						/* 8px bottom gap is our intentional surround. */
 						var avail = window.innerHeight - top - 8;
 						if (avail > 0) {
 							wrap.style.minHeight = avail + 'px';
 						}
 					}
-					/* Initial — after CSS has applied. */
 					if (document.readyState === 'loading') {
 						document.addEventListener('DOMContentLoaded', recalc);
 					} else {
 						recalc();
 					}
-					/* Catch late-injected notices (Calypso / WP.com plugins
-					   sometimes add banners post-load via JS). */
 					window.addEventListener('load', recalc);
 					setTimeout(recalc, 250);
 					setTimeout(recalc, 1000);
-					/* Respond to viewport resize (responsive layouts on
-					   WP.com's proxied frame can change height). */
 					window.addEventListener('resize', recalc);
-					/* If anything new gets prepended to #wpbody-content
-					   later, recompute. */
 					if (window.MutationObserver) {
 						var body = document.getElementById('wpbody-content');
 						if (body) new MutationObserver(recalc).observe(body, { childList: true, subtree: false });
