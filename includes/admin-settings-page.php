@@ -107,33 +107,14 @@ add_action(
 					#adminmenuback, #adminmenuwrap, #adminmenu,
 					.wrap.ufc-admin-wrap { background: #1e1e1e !important; }
 
-					/* Hide the WordPress admin bar on THIS admin page only, so
-					   the card extends flush to the top of the viewport.
-					   Empirical inspection on a WP.com staging install
-					   (testshopyoannj.wpcomstaging.com) confirmed two top-
-					   anchored elements:
-					     - `#wpadminbar` — native WP admin bar, 32px tall,
-					       reserved via `html.wp-toolbar { padding-top: 32px }`.
-					     - `#atomic-proxy-bar` — WP.com Atomic "PROXIED V2"
-					       chip, ~95×18px, `position: fixed`, `z-index: 100001`
-					       (higher than the admin bar). Doesn't reserve layout
-					       space but DOES paint over whatever sits at top:0
-					       if we don't hide it too.
-					   No other element at this site (locally or on WP.com)
-					   sits between the viewport top and the card. */
-					#wpadminbar,
-					#atomic-proxy-bar { display: none !important; }
-					html.wp-toolbar { padding-top: 0 !important; }
-
 					.ufc-admin-wrap {
 						/* Override WP .wrap defaults (10px 20px 0 2px) to
 						   the Fonts page's tighter edge spacing. */
 						margin: 0 8px 8px 0;
 						display: flex;
 						flex-direction: column;
-						/* Admin bar hidden above → no 32px reservation; just
-						   the 8px bottom gap to the viewport edge. */
-						min-height: calc(100vh - 8px);
+						/* 32px = WP admin bar, 8px = bottom gap to viewport edge */
+						min-height: calc(100vh - 32px - 8px);
 					}
 					.ufc-admin-card {
 						flex: 1 1 auto;
