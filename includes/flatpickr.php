@@ -22,10 +22,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 function ufc_enqueue_flatpickr() {
-	if ( is_admin() ) {
-		return;
-	}
-	// Showcase-only scope — see plugin main file.
+	// Showcase-only scope — frontend `/?uf_showcase=1` OR the Form Controls
+	// admin page. The shared gate `ufc_showcase_panel_is_active()` covers
+	// both. (Earlier versions bailed on `is_admin()` because the showcase
+	// only lived on the frontend; now that the admin page renders the
+	// showcase inline, the date / time inputs in the preview need
+	// Flatpickr there too.)
 	if ( ! function_exists( 'ufc_showcase_panel_is_active' ) || ! ufc_showcase_panel_is_active() ) {
 		return;
 	}
@@ -1017,4 +1019,5 @@ CSS;
 JS;
 	wp_add_inline_script( 'flatpickr', $js );
 }
-add_action( 'wp_enqueue_scripts', 'ufc_enqueue_flatpickr' );
+add_action( 'wp_enqueue_scripts',    'ufc_enqueue_flatpickr' );
+add_action( 'admin_enqueue_scripts', 'ufc_enqueue_flatpickr' );

@@ -56,27 +56,26 @@ require_once UNIFIED_FORM_CONTROLS_PATH . 'includes/admin-settings-page.php';
  *
  * Both gated to `?uf_showcase=1` to match the rest of the plugin's scope.
  */
-add_action(
-	'wp_enqueue_scripts',
-	function () {
-		if ( ! function_exists( 'ufc_showcase_panel_is_active' ) || ! ufc_showcase_panel_is_active() ) {
-			return;
-		}
-
-		$tokens_path = UNIFIED_FORM_CONTROLS_PATH . 'css/uf-tokens.css';
-		wp_enqueue_style(
-			'uf-tokens',
-			UNIFIED_FORM_CONTROLS_URL . 'css/uf-tokens.css',
-			array(),
-			file_exists( $tokens_path ) ? filemtime( $tokens_path ) : UNIFIED_FORM_CONTROLS_VERSION
-		);
-
-		$forms_path = UNIFIED_FORM_CONTROLS_PATH . 'css/uf-forms.css';
-		wp_enqueue_style(
-			'uf-forms',
-			UNIFIED_FORM_CONTROLS_URL . 'css/uf-forms.css',
-			array( 'uf-tokens' ),
-			file_exists( $forms_path ) ? filemtime( $forms_path ) : UNIFIED_FORM_CONTROLS_VERSION
-		);
+function ufc_enqueue_showcase_styles() {
+	if ( ! function_exists( 'ufc_showcase_panel_is_active' ) || ! ufc_showcase_panel_is_active() ) {
+		return;
 	}
-);
+
+	$tokens_path = UNIFIED_FORM_CONTROLS_PATH . 'css/uf-tokens.css';
+	wp_enqueue_style(
+		'uf-tokens',
+		UNIFIED_FORM_CONTROLS_URL . 'css/uf-tokens.css',
+		array(),
+		file_exists( $tokens_path ) ? filemtime( $tokens_path ) : UNIFIED_FORM_CONTROLS_VERSION
+	);
+
+	$forms_path = UNIFIED_FORM_CONTROLS_PATH . 'css/uf-forms.css';
+	wp_enqueue_style(
+		'uf-forms',
+		UNIFIED_FORM_CONTROLS_URL . 'css/uf-forms.css',
+		array( 'uf-tokens' ),
+		file_exists( $forms_path ) ? filemtime( $forms_path ) : UNIFIED_FORM_CONTROLS_VERSION
+	);
+}
+add_action( 'wp_enqueue_scripts',    'ufc_enqueue_showcase_styles' );
+add_action( 'admin_enqueue_scripts', 'ufc_enqueue_showcase_styles' );
