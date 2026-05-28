@@ -23,9 +23,75 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Whether the active theme is a block theme (FSE).
+ *
+ * The plugin's customization surface relies on theme.json — the file
+ * block themes ship to declare color palettes, font families, spacing
+ * tokens, and (where Unified Form Controls writes its settings) the
+ * `settings.custom.ufFields` object the showcase panel reads / writes
+ * via the global styles entity. Classic themes have no theme.json, so
+ * there's no surface for this plugin to operate on. The admin page is
+ * hidden in that case and an admin notice points the user at
+ * Appearance > Themes so they can switch.
+ *
+ * `wp_is_block_theme()` was introduced in WP 5.9. The plugin requires
+ * WP 6.0+ so the function is always available — `function_exists()`
+ * here is defensive belt-and-suspenders.
+ */
+function ufc_active_theme_is_block_theme() {
+	return function_exists( 'wp_is_block_theme' ) && wp_is_block_theme();
+}
+
+/**
+ * Admin notice when a classic theme is active.
+ *
+ * Fires on every wp-admin page so the user sees it no matter where
+ * they land first after activating the plugin. `is-dismissible`
+ * lets the user dismiss it for the current page load — they'll see
+ * it again on the next admin navigation until they switch themes
+ * (we don't persist dismissal, since the underlying limitation
+ * persists until the theme changes).
+ */
+add_action(
+	'admin_notices',
+	function () {
+		if ( ufc_active_theme_is_block_theme() ) {
+			return;
+		}
+		?>
+		<div class="notice notice-warning is-dismissible">
+			<p>
+				<strong><?php esc_html_e( 'Unified Form Controls', 'unified-form-controls' ); ?>:</strong>
+				<?php
+				printf(
+					/* translators: %s: URL to the Themes admin screen. */
+					wp_kses(
+						__( 'This plugin requires a block theme to work. It customizes form fields through <code>theme.json</code> design tokens, which are only available in block themes. <a href="%s">Switch to a block theme</a> to enable the form controls page under Appearance.', 'unified-form-controls' ),
+						array(
+							'code' => array(),
+							'a'    => array( 'href' => array() ),
+						)
+					),
+					esc_url( admin_url( 'themes.php' ) )
+				);
+				?>
+			</p>
+		</div>
+		<?php
+	}
+);
+
 add_action(
 	'admin_menu',
 	function () {
+		// On classic themes there's nothing the plugin can configure — see
+		// `ufc_active_theme_is_block_theme()` for the rationale. Skip the
+		// menu registration entirely so the submenu doesn't appear under
+		// Appearance.
+		if ( ! ufc_active_theme_is_block_theme() ) {
+			return;
+		}
 		add_theme_page(
 			__( 'Form controls', 'unified-form-controls' ),
 			__( 'Form controls', 'unified-form-controls' ),
