@@ -95,6 +95,18 @@ add_action(
 					. '#wpadminbar{display:none!important}'
 					. 'html{margin-top:32px!important;padding-top:0!important}'
 					. 'body{margin-top:0!important}'
+					/*
+					 * The settings panel inside the iframe pins itself via
+					 * `top: var( --wp-admin--admin-bar--height, 0px )`.
+					 * `admin-bar.min.css` defines that variable as 32px
+					 * when it loads — but we dequeue admin-bar so the var
+					 * never resolves and the panel falls back to top:0,
+					 * which sits behind the parent`s 32px geometric clip.
+					 * Set the variable ourselves at 32px so the panel
+					 * aligns with the visible region`s top edge regardless
+					 * of whether admin-bar.css loads.
+					 */
+					. ':root{--wp-admin--admin-bar--height:32px!important}'
 					. '</style>';
 			},
 			999
@@ -129,6 +141,10 @@ add_action(
 				echo '<style id="ufc-iframe-no-admin-bar-footer">'
 					. 'html{margin-top:32px!important;padding-top:0!important}'
 					. 'body{margin-top:0!important}'
+					/* Mirrors the wp_head block above — emitted in the
+					   footer so it appears after any stylesheet WP.com`s
+					   performance optimizer relocates into <body>. */
+					. ':root{--wp-admin--admin-bar--height:32px!important}'
 					. '</style>';
 			},
 			999
