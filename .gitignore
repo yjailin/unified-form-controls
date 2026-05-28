@@ -1,0 +1,15 @@
+# Local backup files (timestamped copies created by the assistant before
+# risky edits). Useful on disk but not part of the plugin source.
+*.backup-*
+
+# wp-env / Docker artifacts (the workspace mounts this directory but
+# generates its own state outside the repo — nothing here to track).
+.wp-env/
+
+# OS noise
+.DS_Store
+Thumbs.db
+
+# Editor noise
+.vscode/
+.idea/

@@ -1,0 +1,165 @@
+/*
+ * Unified Form Controls — token defaults + base consumer rules.
+ *
+ * Extracted from twentytwentyfive's functions.php inline CSS (the
+ * "UNIFIED-FORMS: Phase 1 draft" block). Two parts:
+ *
+ *   1. The `--uf-field-*` token defaults — every consumer in
+ *      uf-forms.css reads these. Without defaults, tokens are unset
+ *      and the showcase renders as theme-default UA chrome.
+ *
+ *   2. The base consumer rules that apply background / color /
+ *      border-radius / font-size to text-like inputs, selects, and
+ *      textareas. uf-forms.css covers textareas, steppers, and the
+ *      toggle group on its own but NOT text inputs or selects —
+ *      so without this block the Border Radius slider has nothing
+ *      to drive on the most visible field types.
+ *
+ * Scope: the original `:is(...)` selector list is preserved verbatim.
+ * The WC-specific selectors are harmless on themes without WooCommerce
+ * — they simply don't match.
+ */
+
+/* === UNIFIED-FORMS: Phase 1 draft (Checkout surface only) ===========
+   Token layer to be extracted into a standalone plugin once validated.
+   Replaces WooCommerce's hardcoded white-field + dark-text chrome with
+   tokens that resolve through the site palette. `--wp--custom--field--*`
+   gives themes a first-class override hook. */
+:is(.wp-block-woocommerce-checkout, .wp-block-woocommerce-cart, .wc-block-mini-cart__drawer, .wp-block-post-comments-form, .wp-block-search, .wp-block-form, .wp-block-jetpack-contact-form, .comment-form, .woocommerce-MyAccount-content, .uf-showcase, .uf-checkout, body.single-product form.cart) {
+	/* We intentionally don't force `color-scheme` here — the theme
+	   (or its style variation) should declare it once at html/body
+	   level, and our `light-dark()`-based tokens (like error color)
+	   will adapt automatically to match the page brightness. Default
+	   when unset is `light`, which is the correct choice for
+	   default-palette themes. Dark-palette themes like Atelier Aura
+	   should declare `color-scheme: dark` in their theme.json. */
+
+	/* Design knobs hoisted here so both floating-label fields AND
+	   other field-like controls (quantity stepper, etc.) inherit
+	   them and render at a consistent size. */
+	--uf-field-inset: var(--wp--custom--field--inset, calc(var(--uf-field-font-size, 0.875rem) * 0.55));
+	--uf-field-label-gap: var(--wp--custom--field--label-gap, calc(var(--uf-field-font-size, 0.875rem) * 0.05));
+	/* Shared field height: what every field-like control should be
+	   tall enough to match. Formula: 2 × side-inset + shrunk-label
+	   height (label font × 0.9 scale × 1.2 line-height = 1.08×) +
+	   label-gap + one line of value text (value font × 1.2). The
+	   label and value fonts are intentionally different tokens —
+	   the value has a 16px floor (iOS), the label doesn't. */
+	--uf-field-height: calc(
+		var(--uf-field-inset) * 2
+		+ var(--uf-field-label-font-size) * 1.08
+		+ var(--uf-field-label-gap)
+		+ var(--uf-field-font-size) * 1.2
+	);
+
+	/* Field bg defaults to transparent so the field blends with
+	   whatever the page background is (any theme, any palette).
+	   Themes that want an explicit field surface color can set
+	   --wp--custom--field--bg. */
+	--uf-field-bg: var(--wp--custom--field--bg, transparent);
+	/* Fill color for the "filled" variant: a subtle surface tint that
+	   sits between the page bg and the field text color. Uses a low
+	   opacity (7%) because higher values read as too dark on light
+	   backgrounds (black at 12% is much more visible than pink at
+	   12%). 7% is perceptually similar across palettes. */
+	--uf-field-fill: var(--wp--custom--field--fill, color-mix(in oklab, var(--uf-field-text) 7%, var(--uf-field-bg) 93%));
+	/* Field text + label default to currentColor, which means "the
+	   text color inherited at this point in the cascade" — i.e., the
+	   theme's body text color, whatever style variation is active.
+	   Themes can still override via --wp--custom--field--text. */
+	--uf-field-text: var(--wp--custom--field--text, currentColor);
+	--uf-field-label: var(--wp--custom--field--label, currentColor);
+	--uf-field-placeholder: color-mix(in srgb, var(--uf-field-label) 50%, transparent);
+	--uf-field-border: var(--uf-field-text);
+
+	/* Error color adapts to page brightness via CSS `light-dark()`.
+	   Themes can override either variant via theme.json > custom >
+	   field > {errorOnLight, errorOnDark}, or set the final color
+	   directly via --wp--custom--field--error. */
+	--uf-field-error-on-light: var(--wp--custom--field--error-on-light, #B03040);
+	--uf-field-error-on-dark: var(--wp--custom--field--error-on-dark, #FF8A95);
+	--uf-field-error: var(--wp--custom--field--error, light-dark(var(--uf-field-error-on-light), var(--uf-field-error-on-dark)));
+	/* Hover + focus + error states use a 2px visual stroke (1px
+	   border + 1px inset shadow) in the same solid color. No
+	   separate hover/focus color tokens needed. */
+	/* `--uf-field-radius` is NOT set here — it's driven by the
+	   Corners variant (`body[data-corners="sharp|rounded|pill"]`
+	   in uf-forms.css). Setting it here would pin the value at
+	   this scope's specificity and block the variant cascade.
+	   Consumers fall back to `4px` via `var(--uf-field-radius, 4px)`. */
+
+	/* Typography: all sizes flow from the theme. `inherit` keeps the
+	   field value in the body size; labels/errors/helpers default to
+	   the theme's `small` preset. Themes can override each one via
+	   theme.json > settings > custom > field > {fontSize,...}. */
+	--uf-field-font-size: var(--wp--custom--field--font-size, max(16px, var(--wp--preset--font-size--small, 0.875rem)));
+	--uf-field-label-font-size: var(--wp--custom--field--label-font-size, var(--wp--preset--font-size--small, 0.875rem));
+	/* --uf-field-font-size (the value text) gets a 16px floor so text
+	   inputs on iOS don't trigger the auto-zoom that fires below 16px.
+	   Themes with a small preset already ≥ 16px are unaffected — the
+	   floor only kicks in when the preset would be too small. Labels
+	   stay at the raw preset since they aren't edited (no zoom). */
+	/* Helper + error default to 90% of the label — same size as the
+	   shrunk label at the top of filled fields, so secondary text
+	   across the form reads at one consistent scale. */
+	--uf-field-error-font-size: var(--wp--custom--field--error-font-size, calc(var(--uf-field-label-font-size) * 0.9));
+	--uf-field-helper-font-size: var(--wp--custom--field--helper-font-size, calc(var(--uf-field-label-font-size) * 0.9));
+}
+/* Field surfaces: text-like inputs, selects, textareas, and their
+   WooCommerce wrappers (the select wrapper paints the visible bg,
+   not the <select> itself). Explicitly excludes checkbox/radio/
+   submit/button so they keep their own chrome. */
+:is(.wp-block-woocommerce-checkout, .wp-block-woocommerce-cart, .wc-block-mini-cart__drawer, .wp-block-post-comments-form, .wp-block-search, .wp-block-form, .wp-block-jetpack-contact-form, .comment-form, .woocommerce-MyAccount-content, .uf-showcase, .uf-checkout) input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="hidden"]),
+:is(.wp-block-woocommerce-checkout, .wp-block-woocommerce-cart, .wc-block-mini-cart__drawer, .wp-block-post-comments-form, .wp-block-search, .wp-block-form, .wp-block-jetpack-contact-form, .comment-form, .woocommerce-MyAccount-content, .uf-showcase, .uf-checkout) select,
+:is(.wp-block-woocommerce-checkout, .wp-block-woocommerce-cart, .wc-block-mini-cart__drawer, .wp-block-post-comments-form, .wp-block-search, .wp-block-form, .wp-block-jetpack-contact-form, .comment-form, .woocommerce-MyAccount-content, .uf-showcase, .uf-checkout) textarea,
+:is(.wp-block-woocommerce-checkout, .wp-block-woocommerce-cart, .wc-block-mini-cart__drawer, .wp-block-post-comments-form, .wp-block-search, .wp-block-form, .wp-block-jetpack-contact-form, .comment-form, .woocommerce-MyAccount-content, .uf-showcase, .uf-checkout) .wc-block-components-text-input,
+:is(.wp-block-woocommerce-checkout, .wp-block-woocommerce-cart, .wc-block-mini-cart__drawer, .wp-block-post-comments-form, .wp-block-search, .wp-block-form, .wp-block-jetpack-contact-form, .comment-form, .woocommerce-MyAccount-content, .uf-showcase, .uf-checkout) .wc-blocks-components-select,
+:is(.wp-block-woocommerce-checkout, .wp-block-woocommerce-cart, .wc-block-mini-cart__drawer, .wp-block-post-comments-form, .wp-block-search, .wp-block-form, .wp-block-jetpack-contact-form, .comment-form, .woocommerce-MyAccount-content, .uf-showcase, .uf-checkout) .wc-blocks-components-select__container {
+	background-color: var(--uf-field-bg) !important;
+	color: var(--uf-field-text) !important;
+	border-color: var(--uf-field-border) !important;
+	border-radius: var(--uf-field-radius) !important;
+	font-size: var(--uf-field-font-size) !important;
+}
+/* Inner <select> sits on top of the wrapper and must stay transparent
+   so the wrapper's dark bg shows through (otherwise UA paints white). */
+:is(.wp-block-woocommerce-checkout, .wp-block-woocommerce-cart, .wc-block-mini-cart__drawer, .wp-block-post-comments-form, .wp-block-search, .wp-block-form, .wp-block-jetpack-contact-form, .comment-form, .woocommerce-MyAccount-content, .uf-showcase, .uf-checkout) .wc-blocks-components-select__select,
+:is(.wp-block-woocommerce-checkout, .wp-block-woocommerce-cart, .wc-block-mini-cart__drawer, .wp-block-post-comments-form, .wp-block-search, .wp-block-form, .wp-block-jetpack-contact-form, .comment-form, .woocommerce-MyAccount-content, .uf-showcase, .uf-checkout) .wc-block-components-text-input input {
+	background-color: transparent !important;
+	color: var(--uf-field-text) !important;
+}
+/* Hover and focus: same solid color as rest, but beefed up from 1px
+   to a visual 2px via an inset box-shadow sitting right inside the
+   1px border. No color-mix transparencies, no layout shift (the
+   input's bounding box stays exactly the same). */
+:is(.wp-block-woocommerce-checkout, .wp-block-woocommerce-cart, .wc-block-mini-cart__drawer, .wp-block-post-comments-form, .wp-block-search, .wp-block-form, .wp-block-jetpack-contact-form, .comment-form, .woocommerce-MyAccount-content, .uf-showcase, .uf-checkout) input:hover:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
+:is(.wp-block-woocommerce-checkout, .wp-block-woocommerce-cart, .wc-block-mini-cart__drawer, .wp-block-post-comments-form, .wp-block-search, .wp-block-form, .wp-block-jetpack-contact-form, .comment-form, .woocommerce-MyAccount-content, .uf-showcase, .uf-checkout) select:hover,
+:is(.wp-block-woocommerce-checkout, .wp-block-woocommerce-cart, .wc-block-mini-cart__drawer, .wp-block-post-comments-form, .wp-block-search, .wp-block-form, .wp-block-jetpack-contact-form, .comment-form, .woocommerce-MyAccount-content, .uf-showcase, .uf-checkout) textarea:hover,
+:is(.wp-block-woocommerce-checkout, .wp-block-woocommerce-cart, .wc-block-mini-cart__drawer, .wp-block-post-comments-form, .wp-block-search, .wp-block-form, .wp-block-jetpack-contact-form, .comment-form, .woocommerce-MyAccount-content, .uf-showcase, .uf-checkout) input:focus:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
+:is(.wp-block-woocommerce-checkout, .wp-block-woocommerce-cart, .wc-block-mini-cart__drawer, .wp-block-post-comments-form, .wp-block-search, .wp-block-form, .wp-block-jetpack-contact-form, .comment-form, .woocommerce-MyAccount-content, .uf-showcase, .uf-checkout) select:focus,
+:is(.wp-block-woocommerce-checkout, .wp-block-woocommerce-cart, .wc-block-mini-cart__drawer, .wp-block-post-comments-form, .wp-block-search, .wp-block-form, .wp-block-jetpack-contact-form, .comment-form, .woocommerce-MyAccount-content, .uf-showcase, .uf-checkout) textarea:focus,
+:is(.wp-block-woocommerce-checkout, .wp-block-woocommerce-cart, .wc-block-mini-cart__drawer, .wp-block-post-comments-form, .wp-block-search, .wp-block-form, .wp-block-jetpack-contact-form, .comment-form, .woocommerce-MyAccount-content, .uf-showcase, .uf-checkout) .wc-block-components-text-input:hover,
+:is(.wp-block-woocommerce-checkout, .wp-block-woocommerce-cart, .wc-block-mini-cart__drawer, .wp-block-post-comments-form, .wp-block-search, .wp-block-form, .wp-block-jetpack-contact-form, .comment-form, .woocommerce-MyAccount-content, .uf-showcase, .uf-checkout) .wc-blocks-components-select:hover,
+:is(.wp-block-woocommerce-checkout, .wp-block-woocommerce-cart, .wc-block-mini-cart__drawer, .wp-block-post-comments-form, .wp-block-search, .wp-block-form, .wp-block-jetpack-contact-form, .comment-form, .woocommerce-MyAccount-content, .uf-showcase, .uf-checkout) .wc-block-components-text-input:focus-within,
+:is(.wp-block-woocommerce-checkout, .wp-block-woocommerce-cart, .wc-block-mini-cart__drawer, .wp-block-post-comments-form, .wp-block-search, .wp-block-form, .wp-block-jetpack-contact-form, .comment-form, .woocommerce-MyAccount-content, .uf-showcase, .uf-checkout) .wc-blocks-components-select:focus-within {
+	box-shadow: inset 0 0 0 1px var(--uf-field-border) !important;
+	outline: none !important;
+}
+:is(.wp-block-woocommerce-checkout, .wp-block-woocommerce-cart, .wc-block-mini-cart__drawer, .wp-block-post-comments-form, .wp-block-search, .wp-block-form, .wp-block-jetpack-contact-form, .comment-form, .woocommerce-MyAccount-content, .uf-showcase, .uf-checkout) input::placeholder,
+:is(.wp-block-woocommerce-checkout, .wp-block-woocommerce-cart, .wc-block-mini-cart__drawer, .wp-block-post-comments-form, .wp-block-search, .wp-block-form, .wp-block-jetpack-contact-form, .comment-form, .woocommerce-MyAccount-content, .uf-showcase, .uf-checkout) textarea::placeholder {
+	color: var(--uf-field-placeholder) !important;
+}
+:is(.wp-block-woocommerce-checkout, .wp-block-woocommerce-cart, .wc-block-mini-cart__drawer, .wp-block-post-comments-form, .wp-block-search, .wp-block-form, .wp-block-jetpack-contact-form, .comment-form, .woocommerce-MyAccount-content, .uf-showcase, .uf-checkout) .wc-block-components-text-input label,
+:is(.wp-block-woocommerce-checkout, .wp-block-woocommerce-cart, .wc-block-mini-cart__drawer, .wp-block-post-comments-form, .wp-block-search, .wp-block-form, .wp-block-jetpack-contact-form, .comment-form, .woocommerce-MyAccount-content, .uf-showcase, .uf-checkout) .wc-blocks-components-select label,
+:is(.wp-block-woocommerce-checkout, .wp-block-woocommerce-cart, .wc-block-mini-cart__drawer, .wp-block-post-comments-form, .wp-block-search, .wp-block-form, .wp-block-jetpack-contact-form, .comment-form, .woocommerce-MyAccount-content, .uf-showcase, .uf-checkout) .uf-label {
+	color: var(--uf-field-label) !important;
+	font-size: var(--uf-field-label-font-size) !important;
+}
+:is(.wp-block-woocommerce-checkout, .wp-block-woocommerce-cart, .wc-block-mini-cart__drawer, .wp-block-post-comments-form, .wp-block-search, .wp-block-form, .wp-block-jetpack-contact-form, .comment-form, .woocommerce-MyAccount-content, .uf-showcase, .uf-checkout) .uf-error,
+:is(.wp-block-woocommerce-checkout, .wp-block-woocommerce-cart, .wc-block-mini-cart__drawer, .wp-block-post-comments-form, .wp-block-search, .wp-block-form, .wp-block-jetpack-contact-form, .comment-form, .woocommerce-MyAccount-content, .uf-showcase, .uf-checkout) .wc-block-components-validation-error {
+	font-size: var(--uf-field-error-font-size) !important;
+}
+:is(.wp-block-woocommerce-checkout, .wp-block-woocommerce-cart, .wc-block-mini-cart__drawer, .wp-block-post-comments-form, .wp-block-search, .wp-block-form, .wp-block-jetpack-contact-form, .comment-form, .woocommerce-MyAccount-content, .uf-showcase, .uf-checkout) .uf-helper {
+	font-size: var(--uf-field-helper-font-size) !important;
+}
+/* === END UNIFIED-FORMS draft ======================================= */

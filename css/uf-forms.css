@@ -1,0 +1,2174 @@
+		.uf-showcase {
+			max-width: 960px;
+			margin: 0 auto;
+			padding: 64px 48px 96px;
+		}
+
+		/* === Checkout replacement layout (uses literal showcase fields) === */
+		.uf-checkout { max-width: 1080px; margin: 0 auto; }
+		.uf-checkout__form {
+			display: grid;
+			grid-template-columns: minmax(0, 3fr) minmax(260px, 2fr);
+			gap: 48px;
+			align-items: start;
+		}
+		.uf-checkout__main { display: flex; flex-direction: column; gap: 32px; }
+		.uf-checkout section { display: flex; flex-direction: column; gap: 12px; }
+		.uf-checkout :is(h1, h2, h3, h4, h5, h6) { margin-block: 0; }
+		.uf-checkout__row {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 12px;
+		}
+		.uf-checkout__note {
+			opacity: .7;
+			margin: 4px 0 0;
+			font-size: var(--wp--preset--font-size--small, 0.875rem);
+		}
+		/* Place-order button + agreement.
+		   Uses the WordPress Button block markup (.wp-block-button
+		   wrapping .wp-block-button__link), so theme.json styles apply
+		   automatically. We just tweak width + cursor. */
+		.uf-checkout__place-order { gap: 16px; }
+		.uf-checkout__place-order-btn,
+		.uf-checkout__place-order-btn .wp-block-button__link {
+			width: 100% !important;
+		}
+		.uf-checkout__place-order-btn .wp-block-button__link {
+			display: flex !important;
+			align-items: center;
+			justify-content: center;
+			cursor: pointer;
+			border: 0;
+			font: inherit;
+			font-weight: 500;
+		}
+		.uf-checkout__agreement {
+			margin: 0;
+			font-size: var(--wp--preset--font-size--small, 0.875rem);
+		}
+		.uf-checkout__agreement a {
+			color: inherit;
+			text-decoration: underline;
+			text-underline-offset: 3px;
+		}
+
+		/* Order summary column — a panel/container, NOT a field, so it
+		   must NOT inherit `--uf-field-radius` (the Corners variant).
+		   Hardcoded 4px so the summary border stays reasonable regardless
+		   of the site-wide field corners setting (sharp / rounded / pill). */
+		.uf-checkout__summary {
+			border: 1px solid var(--uf-divider);
+			border-radius: 4px;
+			padding: 24px;
+			display: flex;
+			flex-direction: column;
+			gap: 20px;
+			position: sticky;
+			top: 24px;
+		}
+		/* Line-item layout, parity with WooCommerce Cart / Mini-cart:
+		     - thumb 76×76, square (radius 0), top-aligned with name
+		     - product name at theme heading scale (inherits h-size)
+		     - description + line total at small font, weight 300
+		     - no vertical margins between lines — natural flow
+		   Checkout-only deviations (per user spec):
+		     - quantity badge on the thumb (read-only summary)
+		     - no unit price, no stepper, no remove */
+		.uf-summary__items {
+			list-style: none;
+			margin: 0;
+			padding: 0;
+			display: flex;
+			flex-direction: column;
+			gap: 20px;
+		}
+		.uf-summary__item {
+			display: grid;
+			grid-template-columns: 60px 1fr auto;
+			gap: 16px;
+			align-items: flex-start;
+		}
+		.uf-summary__thumb {
+			width: 60px;
+			height: 60px;
+			background: color-mix(in srgb, currentColor 8%, transparent);
+			border-radius: 0;
+			position: relative;
+			flex-shrink: 0;
+			overflow: visible;
+		}
+		.uf-summary__thumb img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			display: block;
+			border-radius: 0;
+		}
+		.uf-summary__thumb::after {
+			/* Quantity badge — read from data-qty. Sits top-right of the
+			   thumb. Only the Checkout summary carries this (Cart/Mini-
+			   cart show qty via the stepper).
+			   Colors come from `--uf-button-bg` / `--uf-button-text`
+			   (published by unified-button-styles.php) so this badge stays
+			   in lock-step with the header cart icon badge and the sale
+			   badges — all three share one color source. */
+			content: attr(data-qty);
+			position: absolute;
+			top: -8px;
+			right: -8px;
+			min-width: 22px;
+			height: 22px;
+			padding: 0 6px;
+			border-radius: 999px;
+			background: var(--uf-button-bg, var(--wp--preset--color--accent-2, #111));
+			color: var(--uf-button-text, var(--wp--preset--color--base, #fff));
+			font-size: 12px;
+			font-weight: 400;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			pointer-events: none;
+			box-sizing: border-box;
+		}
+		.uf-summary__body {
+			display: flex;
+			flex-direction: column;
+			gap: 4px;
+			min-width: 0;
+		}
+		/* Values measured directly off the Cart block line item and
+		   ported verbatim here — locked, not inherited — so Checkout's
+		   summary is pixel-identical to Cart / Mini-cart regardless of
+		   fluid-typography at the current viewport. */
+		.uf-summary__name {
+			/* Use the style variation's heading font/weight so the product
+			   name tracks whichever font the active style uses for
+			   headings (no hard-coded preset). */
+			font-family: var(--uf-heading-font-family, inherit);
+			font-size: var(--wp--preset--font-size--medium);
+			font-weight: var(--uf-heading-font-weight, inherit);
+			line-height: 1.4;
+			color: inherit;
+			text-decoration: none;
+			margin: 0;
+		}
+		.uf-summary__desc {
+			font-size: calc(var(--uf-field-label-font-size) * 0.9);
+			line-height: 1.4;
+			color: inherit;
+			margin: 0;
+		}
+		.uf-summary__line-total {
+			font-size: var(--wp--preset--font-size--small);
+			line-height: 1.4;
+			color: inherit;
+			white-space: nowrap;
+		}
+		/* Right-hand column holding the line total and (when on sale) the
+		   savings badge stacked underneath it, right-aligned. */
+		.uf-summary__total-col {
+			display: flex;
+			flex-direction: column;
+			align-items: flex-end;
+			gap: 4px;
+		}
+		/* Sale savings badge — layout only. Shape/typography come from the
+		   shared sale badge rule in template-ui-tweaks.php; colors come
+		   from unified-button-styles.php (button bg + button text), so this
+		   chip tracks the other WC sale badges automatically. */
+		.uf-summary__savings {
+			align-self: flex-start;
+			display: inline-block;
+			white-space: nowrap;
+		}
+		.uf-summary__coupons {
+			border-top: 1px solid var(--uf-divider);
+			padding-top: 16px;
+		}
+		/* Cart-only: extra 16px below the collapsed toggle so it breathes
+		   before the Estimated total section. Checkout already has its
+		   own bottom rhythm so we don't apply it there. */
+		.uf-cart-coupon-scope .uf-summary__coupons {
+			padding-bottom: 16px;
+		}
+		.uf-summary__coupons > summary {
+			cursor: pointer;
+			font-family: inherit;
+			font-size: var(--wp--preset--font-size--small);
+			font-weight: 300;
+			display: flex;
+			align-items: center;
+			gap: 6px;
+			list-style: none; /* Firefox: hide default marker */
+		}
+		.uf-summary__coupons > summary::-webkit-details-marker { display: none; }
+		.uf-summary__coupons > summary::marker { content: ""; }
+		.uf-summary__coupons .uf-chevron {
+			width: 20px;
+			height: 20px;
+			flex: 0 0 20px;
+		}
+		.uf-summary__coupons .uf-chevron--up { display: none; }
+		.uf-summary__coupons[open] > summary .uf-chevron--down { display: none; }
+		.uf-summary__coupons[open] > summary .uf-chevron--up { display: inline-block; }
+		.uf-summary__coupon-row {
+			margin-top: 12px;
+			display: flex;
+			/* end-align so in above-label mode (wrap = label + field), the
+			   button sits on the FIELD's baseline, not on the wrap's top. */
+			align-items: end;
+			gap: 8px;
+		}
+		.uf-summary__coupon-row .uf-summary__coupon-field { flex: 1 1 auto; margin-top: 0; }
+		/* --uf-input-height: actual rendered input height for the current
+		   label mode. Must be defined where `--uf-field-*` tokens are
+		   resolvable (the token scope below). The above-mode override
+		   targets descendants of `[data-label="above"]` ancestors (body
+		   or .uf-showcase) with higher specificity so it wins. */
+		:is(.wp-block-woocommerce-checkout, .wp-block-woocommerce-cart, .wc-block-mini-cart__drawer, .wp-block-post-comments-form, .wp-block-search, .wp-block-form, .wp-block-jetpack-contact-form, .comment-form, .woocommerce-MyAccount-content, .uf-showcase, .uf-checkout, body.single-product form.cart) {
+			/* `--uf-field-height` is the content+padding height. Inputs
+			   also carry a 1px border on each side, so the rendered
+			   box-height is `field-height + 2px`. Match that exactly
+			   so inline buttons align perfectly. */
+			--uf-input-height: calc(var(--uf-field-height) + 2px);
+		}
+		:is([data-label="above"]) :is(.wp-block-woocommerce-checkout, .wp-block-woocommerce-cart, .wc-block-mini-cart__drawer, .wp-block-post-comments-form, .wp-block-search, .wp-block-form, .wp-block-jetpack-contact-form, .comment-form, .woocommerce-MyAccount-content, .uf-showcase, .uf-checkout, body.single-product form.cart),
+		:is(.uf-showcase, .uf-checkout)[data-label="above"] {
+			--uf-input-height: calc(2 * (var(--uf-field-inset) + 0.1em) + 1.2 * var(--uf-field-font-size) + 2px);
+		}
+		/* Apply button matches the actual input height via `--uf-input-height`
+		   (adapts to label mode). 7-class repeat defeats the unified button
+		   `align-self: center` specificity. */
+		.uf-coupon-apply.uf-coupon-apply.uf-coupon-apply.uf-coupon-apply.uf-coupon-apply.uf-coupon-apply.uf-coupon-apply {
+			flex: 0 0 auto;
+			height: var(--uf-input-height) !important;
+			min-height: 0 !important;
+		}
+		.uf-coupon-apply:disabled {
+			opacity: 0.5;
+			cursor: not-allowed;
+		}
+		/* Disabled buttons: block all pointer interaction so hover never fires. */
+		.wp-element-button:disabled,
+		.wp-block-button__link:disabled,
+		button[disabled],
+		button.disabled,
+		a.button.disabled,
+		.wc-bookings-booking-form-button.disabled {
+			pointer-events: none;
+		}
+		/* Fallback override in case pointer-events is somehow bypassed. */
+		.wp-element-button:disabled:hover,
+		.wp-block-button__link:disabled:hover,
+		button[disabled]:hover,
+		button.disabled:hover,
+		a.button.disabled:hover,
+		.wc-bookings-booking-form-button.disabled:hover {
+			background-color: var(--wp--preset--color--accent-2) !important;
+			color: var(--wp--preset--color--base) !important;
+			outline: 0 !important;
+			outline-offset: 0 !important;
+		}
+		.uf-summary__totals { margin: 0; display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--uf-divider); padding-top: 16px; }
+		.uf-summary__row { display: flex; justify-content: space-between; margin: 0; font-family: inherit; font-size: var(--wp--preset--font-size--small); font-weight: 300; }
+		.uf-summary__row dt, .uf-summary__row dd { margin: 0; font-weight: inherit; }
+		/* Total line: use the active style variation's HEADING font +
+		   weight (exposed as `--uf-heading-font-family` /
+		   `--uf-heading-font-weight` by unified-button-styles.php) so the
+		   total line tracks whatever headings the site uses — no hard-coded
+		   preset. Medium size, tight line-height. */
+		.uf-summary__row--total,
+		.uf-summary__row--total * {
+			font-family: var(--uf-heading-font-family, inherit);
+			font-size: var(--wp--preset--font-size--medium);
+			font-weight: var(--uf-heading-font-weight, inherit);
+			line-height: 1;
+		}
+		.uf-summary__row--total { padding-top: 6px; }
+
+		/* Checkout: mobile-only collapsible order-summary bar. Hidden on
+		   desktop; on mobile it breaks out of the form's content width
+		   to span the full viewport — sitting flush under the site
+		   header like part of the header strip. */
+		.uf-checkout__mobile-summary { display: none; position: relative; }
+		/* Dedicated overlay element (appended by JS to <body>) — sits
+		   BELOW the header so header is never visually covered. `top` is
+		   set dynamically by JS to the header's bottom Y. No reliance on
+		   stacking-context tricks. */
+		.uf-checkout-overlay {
+			position: fixed;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			background: rgba(0, 0, 0, 0.5);
+			z-index: 5;
+			opacity: 0;
+			pointer-events: none;
+			transition: opacity 0.2s ease-out;
+		}
+		.uf-checkout-overlay.is-open {
+			opacity: 1;
+			pointer-events: auto;
+		}
+		/* Summary bar + opened panel need to sit above the overlay (z 5).
+		   Overlay starts BELOW the header so the header is never covered,
+		   no z-index fight needed there. */
+		.uf-checkout__mobile-summary > summary {
+			position: relative;
+			z-index: 20;
+			background: var(--wp--preset--color--base);
+		}
+		.uf-checkout__mobile-summary > summary {
+			list-style: none;
+			cursor: pointer;
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			/* Padding biased +1px on top to visually center Vollkorn
+			   glyphs at default line-height. */
+			padding: 17px var(--wp--style--root--padding-right, 50px) 16px var(--wp--style--root--padding-left, 50px);
+			border-bottom: 1px solid var(--uf-divider);
+		}
+		/* When open, the body overlays the content below (doesn't push the
+		   form). Absolute positioning against the `.uf-checkout__mobile-summary`
+		   relative wrapper, same horizontal break-out as the bar, solid
+		   background so it stays legible over form fields beneath. */
+		/* Consistent 16px breathing room around each internal divider
+		   inside the mobile collapsible body. Scoped to this container
+		   only — the desktop Checkout aside and the Cart coupon scope
+		   keep their own spacing unchanged. */
+		.uf-checkout__mobile-summary-body .uf-summary__items {
+			margin-bottom: 16px;
+		}
+		.uf-checkout__mobile-summary-body .uf-summary__coupons {
+			padding-bottom: 16px;
+		}
+
+		.uf-checkout__mobile-summary-body {
+			/* Always rendered (override the browser's default hiding of
+			   non-summary content in closed <details>) so we can animate
+			   open/close via opacity + transform. */
+			display: block !important;
+			position: absolute;
+			top: 100%;
+			left: 0;
+			right: 0;
+			z-index: 20;
+			background: var(--wp--preset--color--base);
+			border-bottom: 1px solid var(--uf-divider);
+			padding: 20px var(--wp--style--root--padding-right, 50px) 20px var(--wp--style--root--padding-left, 50px);
+			opacity: 0;
+			/* Panel slides down + fades in. `transform-origin: top`
+			   with scaleY gives a natural "unfurl from the bar" effect. */
+			transform: translateY(-12px) scaleY(0.92);
+			transform-origin: top center;
+			pointer-events: none;
+			visibility: hidden;
+			transition:
+				opacity 0.32s cubic-bezier(0.2, 0, 0, 1),
+				transform 0.32s cubic-bezier(0.2, 0, 0, 1),
+				visibility 0s linear 0.32s;
+		}
+		.uf-checkout__mobile-summary[open] .uf-checkout__mobile-summary-body {
+			opacity: 1;
+			transform: translateY(0) scaleY(1);
+			pointer-events: auto;
+			visibility: visible;
+			transition:
+				opacity 0.32s cubic-bezier(0.2, 0, 0, 1),
+				transform 0.32s cubic-bezier(0.2, 0, 0, 1),
+				visibility 0s linear 0s;
+		}
+		.uf-checkout__mobile-summary > summary::-webkit-details-marker { display: none; }
+		.uf-checkout__mobile-summary > summary::marker { content: ""; }
+		.uf-checkout__mobile-summary-label {
+			font-family: var(--wp--preset--font-family--vollkorn);
+			font-size: var(--wp--preset--font-size--medium);
+			flex: 1 1 auto;
+		}
+		.uf-checkout__mobile-summary-total {
+			font-family: var(--wp--preset--font-family--vollkorn);
+			font-size: var(--wp--preset--font-size--medium);
+			margin-inline-start: auto;
+		}
+		.uf-checkout__mobile-summary .uf-chevron {
+			width: 20px;
+			height: 20px;
+			flex: 0 0 20px;
+		}
+		.uf-checkout__mobile-summary .uf-chevron--up { display: none; }
+		.uf-checkout__mobile-summary[open] > summary .uf-chevron--down { display: none; }
+		.uf-checkout__mobile-summary[open] > summary .uf-chevron--up { display: inline-block; }
+
+		@media (max-width: 900px) {
+			/* Show the mobile collapsible bar; break it out of the
+			   Checkout's content container so it spans the full viewport
+			   width like the site header strip above it. Negative
+			   margin-top cancels the main's padding-top so the bar sits
+			   flush against the header strip; margin-bottom creates
+			   breathing room to "Contact information" below. */
+			.uf-checkout__mobile-summary {
+				display: block;
+				width: 100vw;
+				margin-left: calc(50% - 50vw);
+				margin-right: calc(50% - 50vw);
+				/* Cancel the main container's top padding exactly so the
+				   bar sits flush under the header strip at any viewport.
+				   `--wp--preset--spacing--60` is what the main's global
+				   padding resolves to (fluid clamp(30px, 7vw, 70px)). */
+				margin-top: calc(-1 * var(--wp--preset--spacing--60, 70px));
+				margin-bottom: 32px;
+			}
+			/* Switch the form to a single flex column and flatten `.uf-checkout__main`
+			   with `display: contents` so its sections become siblings of the summary
+			   aside. Then CSS `order` slots the summary between the last form section
+			   (the note checkbox lives in Payment) and the Place-order section. */
+			.uf-checkout__form {
+				display: flex;
+				flex-direction: column;
+				align-items: stretch;
+				gap: 32px;
+			}
+			.uf-checkout__main { display: contents; }
+			.uf-checkout__summary { position: static; order: 50; }
+			.uf-checkout__place-order { order: 99; }
+		}
+		@media (max-width: 600px) {
+			.uf-checkout__row { grid-template-columns: 1fr; }
+		}
+		/* Enforce the HTML `hidden` attribute — something (Gutenberg /
+		   WC layout CSS) re-sets display on our checkout textarea and
+		   makes the order-note field visible before the checkbox is
+		   ticked. This wins via specificity. */
+		.uf-checkout [hidden] { display: none !important; }
+
+		/* Comment/review scopes — keep a 16px gap below so the submit
+		   button gets breathing room. Applies whether or not the scope
+		   is paired with `.uf-showcase` (it used to be; now the comment
+		   filter renders the scope class alone). */
+		.uf-product-review-scope,
+		.uf-comment-scope,
+		.uf-product-review-scope.uf-showcase {
+			max-width: none;
+			margin: 0 0 16px 0;
+			padding: 0;
+		}
+		.uf-catalog-ordering-scope.uf-showcase {
+			max-width: none;
+			margin: 0;
+			padding: 0;
+		}
+		/* Catalog top row: result count (left) + sort dropdown (right) on
+		   the same horizontal axis. The row is `space-between` flex with
+		   default `align-items: stretch`; content was top-aligned because
+		   heights differ (21 vs 55). `:has()` scopes to only the row
+		   containing our sort scope. */
+		.wp-block-group.is-content-justification-space-between:has(.uf-catalog-ordering-scope) {
+			align-items: center !important;
+			margin-top: 40px !important;
+		}
+		/* Catalog page: put the 40px gap to the product grid on the
+		   product collection's `margin-top` (not the sort scope's
+		   `margin-bottom`). Margins on flex items would otherwise
+		   offset their center inside the row — moving the margin off
+		   the row lets `align-items: center` center both the result
+		   count text and the sort field visually on the same axis. */
+		body.woocommerce-shop .wp-block-woocommerce-product-collection,
+		body.post-type-archive-product .wp-block-woocommerce-product-collection,
+		body.tax-product_cat .wp-block-woocommerce-product-collection {
+			margin-top: 40px !important;
+		}
+
+		/* Mini-cart footer: 5px gap between the Subtotal row and the
+		   "Shipping and discounts calculated at checkout." description. */
+		.wc-block-mini-cart__footer-subtotal .wc-block-components-totals-item__description {
+			margin-top: 5px !important;
+		}
+		/* ======================================================================
+		   FONT-WEIGHT POLICY: no blanket `font-weight: 400 !important` overrides.
+		   ======================================================================
+		   Every font-weight on this site comes from the active style variation's
+		   theme.json. The scoped overrides we used to have here
+		   (header/footer/mini-cart/checkout/shop/product-archive/product-cat/
+		   product-collection/showcase/uf-checkout/.unified-search) were
+		   whack-a-mole: fixing one kept breaking another.
+		   If a specific WC block ships with a weight that fights the style
+		   variation, override THAT block with `font-weight: inherit !important`
+		   at its own narrow selector — do NOT add a template-wide rule here. */
+
+		/* Header submenu links: use Small font-size preset. */
+		header .wp-block-navigation__submenu-container,
+		header .wp-block-navigation__submenu-container a,
+		header .wp-block-navigation__submenu-container .wp-block-navigation-item__label {
+			font-size: var(--wp--preset--font-size--small) !important;
+		}
+
+		/* Product cards: tighten the gap between product name and price.
+		   The name's default `margin-bottom: 12px` creates more breathing
+		   room than needed — halving it reads more compact. */
+		.wp-block-woocommerce-product-collection .wp-block-post-title,
+		.wp-block-woocommerce-product-template .wp-block-post-title {
+			margin-bottom: 4px !important;
+		}
+
+		/* Category archive: space below the term description. */
+		.wp-block-term-description {
+			margin-bottom: 40px;
+		}
+
+		/* Catalog result count ("Showing 1–16 of 17 results"): Medium size. */
+		.wp-block-woocommerce-product-results-count,
+		.wp-block-woocommerce-product-results-count .woocommerce-result-count,
+		.woocommerce.wc-block-product-results-count .woocommerce-result-count,
+		.woocommerce-result-count {
+			font-size: var(--wp--preset--font-size--medium) !important;
+		}
+
+		/* Footer site identity — the column holding site title + tagline
+		   defaults to min-content (~106px, the width of the longest
+		   unbreakable word "Atelier" at 32px), which wraps both onto
+		   multiple lines on templates where the columns block can't
+		   grow (e.g. Single Product). Grow the hosting column to fit. */
+		footer .wp-block-column:has(.wp-block-site-title),
+		footer .wp-block-column:has(.wp-block-site-tagline) {
+			min-width: max-content;
+		}
+		.uf-showcase h1 { margin: 0 0 8px; }
+		.uf-showcase .uf-lede {
+			opacity: .7;
+			margin: 0 0 48px;
+		}
+		.uf-showcase section {
+			padding: 32px 0;
+			border-top: 1px solid var(--uf-divider);
+		}
+		.uf-showcase section:first-of-type { border-top: 0; padding-top: 0; }
+		/* Inline divider for splitting sibling rows within a single
+		   section. Uses the exact same expression as the section
+		   breaks above (`var(--uf-divider)` = currentColor at 20%
+		   alpha) so the lines render identically and both track any
+		   text-color change from the active theme variation.
+
+		   `color: inherit` is load-bearing: browsers ship a UA-stylesheet
+		   `color` on `<hr>` (Chrome resolves it to an internal grey),
+		   which would otherwise be the `currentColor` that
+		   `--uf-divider` mixes against — producing a grey line instead
+		   of a body-text-colored one. */
+		.uf-showcase .uf-section-divider {
+			margin: 32px 0;
+			border: 0;
+			color: inherit;
+			border-top: 1px solid var(--uf-divider);
+		}
+		.uf-showcase h2 {
+			font-size: 1.1rem;
+			margin: 0 0 20px;
+			opacity: .8;
+			letter-spacing: .02em;
+			text-transform: uppercase;
+		}
+		.uf-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+			/* `gap: row column` — vertical breathing room between rows is
+			   larger than the column gutter to keep paired fields visually
+			   close to each other while separating each row clearly. */
+			gap: 28px 16px;
+		}
+		/* Force "Text inputs" and "Interactive inputs" sections to a
+		   strict 2-col layout so wide viewports don't drop them into 3
+		   columns. Other sections keep the auto-fit behaviour above. */
+		.uf-showcase section[aria-labelledby="s-text"] > .uf-grid,
+		.uf-showcase section[aria-labelledby="s-interactive"] > .uf-grid {
+			grid-template-columns: 1fr 1fr;
+		}
+		.uf-field {
+			display: block;
+		}
+		.uf-field .uf-label {
+			display: block;
+			font-weight: 300;
+			margin-bottom: 6px;
+			opacity: .85;
+		}
+		.uf-field input,
+		.uf-field select,
+		.uf-field textarea {
+			width: 100%;
+			box-sizing: border-box;
+			padding: 12px 14px;
+			font: inherit;
+			border-style: solid;
+			border-width: 1px;
+		}
+		.uf-field textarea { min-height: 96px; resize: vertical; }
+		.uf-field input[disabled],
+		.uf-field select[disabled],
+		.uf-field textarea[disabled] {
+			opacity: .5;
+			cursor: not-allowed;
+		}
+		/* Error state: text + border both use the error color. No outer
+		   ring or double-stroke — just a tinted border that matches the
+		   tinted text. Selector specificity matches the global field
+		   rule's :not() chain so this one wins the cascade. */
+		.uf-showcase .uf-field.uf-has-error input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="hidden"]),
+		.uf-showcase .uf-field.uf-has-error select,
+		.uf-showcase .uf-field.uf-has-error textarea,
+		.uf-showcase input[aria-invalid="true"]:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="hidden"]) {
+			color: var(--uf-field-error) !important;
+			border-color: var(--uf-field-error) !important;
+		}
+		.uf-field.uf-has-error > label {
+			color: var(--uf-field-error) !important;
+		}
+		/* Error hover/focus: the 2px stroke also uses the error color so the
+		   field stays visually "in error" through every interactive state. */
+		.uf-showcase .uf-field.uf-has-error input:hover:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
+		.uf-showcase .uf-field.uf-has-error select:hover,
+		.uf-showcase .uf-field.uf-has-error textarea:hover,
+		.uf-showcase .uf-field.uf-has-error input:focus:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
+		.uf-showcase .uf-field.uf-has-error select:focus,
+		.uf-showcase .uf-field.uf-has-error textarea:focus {
+			box-shadow: inset 0 0 0 1px var(--uf-field-error) !important;
+		}
+		/* Showcase-only: force a focus-looking state for the "Focused" demo
+		   without relying on autofocus (which scrolls the page on load). */
+		.uf-field.uf-is-focused input,
+		.uf-field.uf-is-focused select,
+		.uf-field.uf-is-focused textarea {
+			box-shadow: inset 0 0 0 1px var(--uf-field-border) !important;
+			outline: none !important;
+		}
+
+		/* ------- Floating-label pattern (Checkout-style) -------------------
+		   Empty text/textarea: label sits centered, looking like a placeholder.
+		   Focused or filled text/textarea: label shrinks to the top-left.
+		   Select: always shows the small top-left label (selects always have
+		   a value, so there is no "center" state).
+		   Requires: input has placeholder=" " and comes BEFORE the label in
+		   the DOM. Wrapper uses .uf-field--float. */
+		/* ===== Variant toolbar UI ================================== */
+		.uf-controls {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 16px 32px;
+			padding: 20px 0;
+			margin-bottom: 32px;
+			border-bottom: 1px solid var(--uf-divider);
+		}
+		.uf-controls__group {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+		}
+		.uf-controls__label {
+			font-size: var(--uf-field-label-font-size);
+			opacity: .7;
+			margin-right: 4px;
+			text-transform: uppercase;
+			letter-spacing: .03em;
+		}
+		.uf-controls button {
+			background: transparent;
+			border: 1px solid var(--uf-divider);
+			color: inherit;
+			font: inherit;
+			font-size: var(--uf-field-label-font-size);
+			padding: 4px 10px;
+			border-radius: 4px;
+			cursor: pointer;
+		}
+		.uf-controls button[aria-pressed="true"] {
+			/* Use the theme's contrast preset directly (not --uf-field-text
+			   → currentColor) because setting `color` on this rule would
+			   flip currentColor and make bg == color (invisible button).
+			   `contrast` is the theme's canonical text color, independent
+			   of the element's own color. */
+			background: var(--wp--preset--color--contrast, #111);
+			color: var(--wp--preset--color--base, light-dark(#fff, #111));
+			border-color: var(--wp--preset--color--contrast, #111);
+		}
+		.uf-controls__swatch {
+			position: relative;
+			width: 26px;
+			height: 26px;
+			display: inline-block;
+			cursor: pointer;
+			border: 1px solid var(--uf-divider);
+			border-radius: 4px;
+			overflow: hidden;
+			background: var(--_uf-fill-preview, var(--uf-field-fill));
+		}
+		.uf-controls__swatch input[type="color"] {
+			position: absolute;
+			inset: 0;
+			opacity: 0;
+			cursor: pointer;
+			border: 0;
+		}
+
+		/* ===== Variant: Border ===================================== */
+		/* Outline is the default. Underline strips top/left/right borders
+		   and uses only the bottom edge. Selectors intentionally include
+		   the :not() chain to match the specificity of the global input
+		   rule — otherwise variants would lose the cascade battle. */
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] .uf-field--float input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="hidden"]),
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] .uf-field--float select,
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] .uf-field--float textarea,
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] .uf-field--float .wc-block-components-text-input,
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] .uf-field--float .wc-blocks-components-select,
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] .uf-field--float .wc-blocks-components-select__container {
+			border-top-color: transparent !important;
+			border-left-color: transparent !important;
+			border-right-color: transparent !important;
+		}
+		/* Unfilled underline: no surface to curve → square. Filled
+		   underline: the fill surface follows --uf-field-radius on all
+		   four corners so the Corners setting remains meaningful. */
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"][data-fill="unfilled"] .uf-field--float input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="hidden"]),
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"][data-fill="unfilled"] .uf-field--float select,
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"][data-fill="unfilled"] .uf-field--float textarea {
+			border-radius: 0 !important;
+		}
+
+		/* ===== Variant: Border = None ==============================
+		   All borders hidden. Field boundary comes entirely from the Fill
+		   surface — so this variant forces Fill = Filled (enforced in JS).
+		   Hover/focus use a subtle fill-shift instead of a border change. */
+		:is(.uf-showcase, .uf-checkout, body)[data-border="none"] .uf-field--float input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="hidden"]),
+		:is(.uf-showcase, .uf-checkout, body)[data-border="none"] .uf-field--float select,
+		:is(.uf-showcase, .uf-checkout, body)[data-border="none"] .uf-field--float textarea,
+		:is(.uf-showcase, .uf-checkout, body)[data-border="none"] .uf-field--float .wc-block-components-text-input,
+		:is(.uf-showcase, .uf-checkout, body)[data-border="none"] .uf-field--float .wc-blocks-components-select,
+		:is(.uf-showcase, .uf-checkout, body)[data-border="none"] .uf-field--float .wc-blocks-components-select__container {
+			border-color: transparent !important;
+		}
+		:is(.uf-showcase, .uf-checkout, body)[data-border="none"] :is(.uf-stepper, .wc-block-cart-items .wc-block-components-quantity-selector, .wc-block-mini-cart-items .wc-block-components-quantity-selector, form.cart .wc-block-components-quantity-selector) {
+			border-color: transparent !important;
+		}
+		/* Hover/focus in None mode: subtle overlay (inset box-shadow that
+		   fills the whole box at low alpha) darkens the surface slightly
+		   for feedback. No border to thicken. */
+		:is(.uf-showcase, .uf-checkout, body)[data-border="none"] .uf-field--float input:hover:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
+		:is(.uf-showcase, .uf-checkout, body)[data-border="none"] .uf-field--float select:hover,
+		:is(.uf-showcase, .uf-checkout, body)[data-border="none"] .uf-field--float textarea:hover,
+		:is(.uf-showcase, .uf-checkout, body)[data-border="none"] .uf-field--float input:focus:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
+		:is(.uf-showcase, .uf-checkout, body)[data-border="none"] .uf-field--float select:focus,
+		:is(.uf-showcase, .uf-checkout, body)[data-border="none"] .uf-field--float textarea:focus,
+		:is(.uf-showcase, .uf-checkout, body)[data-border="none"] :is(.uf-stepper, .wc-block-cart-items .wc-block-components-quantity-selector, .wc-block-mini-cart-items .wc-block-components-quantity-selector, form.cart .wc-block-components-quantity-selector):hover,
+		:is(.uf-showcase, .uf-checkout, body)[data-border="none"] :is(.uf-stepper, .wc-block-cart-items .wc-block-components-quantity-selector, .wc-block-mini-cart-items .wc-block-components-quantity-selector, form.cart .wc-block-components-quantity-selector):focus-within {
+			box-shadow: inset 0 0 0 999px color-mix(in srgb, var(--uf-field-text) 7%, transparent) !important;
+		}
+		/* Dim the Unfilled toolbar button when None is active — the combo
+		   is invisible and JS already forces Fill = Filled. */
+		:is(.uf-showcase, .uf-checkout, body)[data-border="none"] [data-dim="fill"][data-val="unfilled"] {
+			opacity: .4;
+			pointer-events: none;
+		}
+
+		/* ===== Trailing icon pattern ================================
+		   Opt-in via .uf-field--trailing on the wrapper. Reserves right-
+		   padding on the input so typed text doesn't collide, positions
+		   the icon button centered in the field box. Works decoratively
+		   (aria-hidden span) or interactively (real button with aria-label). */
+		:is(.uf-showcase, .uf-checkout, body.single-product form.cart) .uf-field--trailing input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="hidden"]) {
+			padding-right: calc(var(--_uf-pad-x) + 2em) !important;
+		}
+		.uf-field--trailing > label {
+			max-width: calc(100% - var(--_uf-pad-x) * 2 - 2em);
+		}
+		/* Hide the browser's native calendar/time picker indicator. We
+		   render our own `.uf-field__icon` button instead (same element
+		   used for password/search icons) — gives identical alignment,
+		   size, hover, and color handling as the rest. The button's click
+		   handler calls `input.showPicker()` to open the native popup. */
+		.uf-field input[type="date"]::-webkit-calendar-picker-indicator,
+		.uf-field input[type="time"]::-webkit-calendar-picker-indicator,
+		.uf-field input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+		.uf-field input[type="month"]::-webkit-calendar-picker-indicator,
+		.uf-field input[type="week"]::-webkit-calendar-picker-indicator {
+			opacity: 0;
+			width: 0;
+			height: 0;
+			padding: 0;
+			margin: 0;
+			display: none;
+		}
+
+		/* WPDS `calendar` and `timeToRead` glyphs fill 18/24 of their
+		   viewBox — roughly 2× denser than the `eye` and `search` glyphs
+		   (8/24 tall). Scale those SVGs down so the rendered glyph
+		   visually matches the eye/search icons (~12-13px tall instead
+		   of 16.8). Base rule sets `.uf-field__icon svg` to 1.4em; the
+		   override here brings date/time down to ~1em. */
+		.uf-field:has(input[type="date"]) .uf-field__icon svg,
+		.uf-field:has(input[type="time"]) .uf-field__icon svg {
+			width: 1em !important;
+			height: 1em !important;
+		}
+
+		.uf-field__icon {
+			position: absolute;
+			right: var(--_uf-pad-x);
+			top: 50%;
+			transform: translateY(-50%);
+			width: 1.6em;
+			height: 1.6em;
+			background: transparent;
+			border: 0;
+			padding: 0;
+			color: var(--uf-field-label);
+			cursor: pointer;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			transition: color 0.12s ease, transform 0.12s ease;
+			/* Normalize font-size across button/span wrappers — buttons
+			   otherwise inherit UA's ~13px, which would make SVGs sized in
+			   em render smaller inside buttons than inside spans. */
+			font-size: var(--uf-field-font-size);
+		}
+		.uf-field__icon:hover { transform: translateY(-50%) scale(1.1); }
+		.uf-field__icon:focus-visible {
+			outline: 1px solid currentColor;
+			outline-offset: 2px;
+			border-radius: 4px;
+		}
+		.uf-field__icon svg {
+			/* Gutenberg icons are designed to balance at 24×24 (native).
+			   Rendering at a larger size (~1.4em ≈ 22px at small font)
+			   gets closer to that target so icons visually match each
+			   other instead of scaling differently based on how densely
+			   each one fills its viewBox. */
+			width: 1.4em;
+			height: 1.4em;
+			display: block;
+		}
+		/* Password toggle: show/hide icons controlled by data-visible. */
+		.uf-field__icon[data-visible="true"] .uf-icon-eye,
+		.uf-field__icon:not([data-visible="true"]) .uf-icon-eye-off {
+			display: none;
+		}
+		/* Pill corners: push icon inward so the curve doesn't clip it. */
+		:is(.uf-showcase, .uf-checkout, body)[data-corners="pill"] .uf-field--trailing .uf-field__icon,
+		:is(.uf-showcase, .uf-checkout, body)[data-corners="pill"] .uf-field--trailing-logos .uf-field__logos {
+			right: calc(var(--_uf-pad-x) + 0.4em);
+		}
+
+		/* ===== Custom number-input chevron spinner ====================
+		   Replaces the native browser ▲▼ spinner on `<input type="number">`
+		   with two stacked chevron SVG buttons (up to increment, down to
+		   decrement) on the right side of the input. Native spinners are
+		   hidden via -webkit-{inner,outer}-spin-button + -moz-appearance.
+
+		   Vertical position is anchored to the field's bottom — same
+		   formula used elsewhere for trailing icons (lines ~1142). This
+		   places the spinner's center on the value text's center in BOTH
+		   label modes: in 'above' mode the input is just the value area
+		   (center = 50%), in 'inside' mode the value sits in the lower
+		   portion of the input (label area on top), and the bottom-
+		   anchored formula tracks that lower position automatically. */
+		/* Selector specificity matches the underline+unfilled rule that
+		   forces `padding-right: 0` on all .uf-field--float inputs (≈line
+		   960). Without these :not() qualifiers our padding override loses
+		   on tie / loses outright in that mode and the chevrons collide
+		   with the value text. */
+		:is(.uf-showcase, .uf-checkout, body) .uf-field--float.uf-field--number-spinner input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="hidden"]):not([disabled]) {
+			/* Reserve space on the right so the value text doesn't
+			   collide with the chevron stack. 1.6em matches the
+			   spinner's width (and the size of other trailing icons). */
+			padding-right: calc(var(--_uf-pad-x) + 1.6em) !important;
+			/* Firefox: hide native spinner. */
+			-moz-appearance: textfield !important;
+		}
+		.uf-field--number-spinner input[type="number"]::-webkit-inner-spin-button,
+		.uf-field--number-spinner input[type="number"]::-webkit-outer-spin-button {
+			/* Chrome/Safari: hide native spinner. */
+			-webkit-appearance: none;
+			margin: 0;
+		}
+		.uf-field__spinner {
+			position: absolute;
+			right: var(--_uf-pad-x);
+			/* `top` + `transform` are set imperatively by the inline
+			   <script> below the spinner markup (see showcase-page.php).
+			   It measures the input's offsetTop + offsetHeight within
+			   the .uf-field wrapper and parks the spinner at the
+			   input's vertical midpoint. Re-runs on `data-label` /
+			   `data-border` / `data-fill` mutations so the spinner
+			   tracks layout changes. CSS alone can't do this reliably
+			   because the input's position within the wrapper varies
+			   by label mode (inside vs above re-orders DOM children). */
+			width: 1.6em;
+			height: 1.6em;
+			display: flex;
+			flex-direction: column;
+			color: var(--uf-field-text);
+			/* Normalize font-size so em-sized children measure off the
+			   field's font-size, not a button's inherited UA size. */
+			font-size: var(--uf-field-font-size);
+			/* Don't intercept clicks outside the buttons (so the user can
+			   still click into the input through the wrapper bounds). */
+			pointer-events: none;
+		}
+		.uf-field__spinner-btn {
+			flex: 1 1 50%;
+			min-height: 0;
+			background: transparent;
+			border: 0;
+			padding: 0;
+			color: inherit;
+			cursor: pointer;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			pointer-events: auto;
+		}
+		.uf-field__spinner-btn svg {
+			/* Smaller than the 1.4em used on full-size trailing icons,
+			   since two chevrons share the same 1.6em vertical footprint. */
+			width: 1em;
+			height: 1em;
+			display: block;
+			/* Scale lives on the SVG (not the button) so the button's
+			   layout box can't shift on hover. Default `transform-origin:
+			   50% 50%` keeps the glyph anchored at its own center. */
+			transition: transform 0.12s ease;
+			transform-origin: 50% 50%;
+		}
+		.uf-field__spinner-btn:hover svg {
+			transform: scale(1.25);
+		}
+		.uf-field__spinner-btn:focus-visible {
+			outline: 1px solid currentColor;
+			outline-offset: 1px;
+			border-radius: 2px;
+		}
+		/* Clear-X icon for search: hidden when input is empty, magnifier
+		   hidden when it isn't — a single field slot, two content states. */
+		.uf-field__icon.uf-icon-clear { display: none; }
+		.uf-field--trailing:has(input:not(:placeholder-shown)) .uf-icon-clear { display: inline-flex; }
+		.uf-field--trailing:has(input:not(:placeholder-shown)) .uf-icon-search { display: none; }
+
+		/* ===== Trailing logos (multi-item static slot) ===============
+		   Sibling of .uf-field--trailing, but for a row of decorative
+		   logos (card brand chips, partner marks, etc.) instead of a
+		   single interactive icon. Slot is non-interactive (pointer-
+		   events: none) so clicks pass through to the input.
+		   Width is driven by `--uf-field-logos-w` so different fields
+		   can reserve different amounts of right padding without
+		   redefining the rule. */
+		.uf-field--trailing-logos { --uf-field-logos-w: 180px; }
+		.uf-showcase .uf-field--trailing-logos input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="hidden"]),
+		.uf-checkout .uf-field--trailing-logos input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="hidden"]) {
+			padding-right: calc(var(--_uf-pad-x) + var(--uf-field-logos-w)) !important;
+		}
+		.uf-field--trailing-logos > label {
+			max-width: calc(100% - var(--_uf-pad-x) * 2 - var(--uf-field-logos-w));
+		}
+		.uf-field__logos {
+			position: absolute;
+			right: var(--_uf-pad-x);
+			top: 50%;
+			transform: translateY(-50%);
+			display: inline-flex;
+			align-items: center;
+			gap: 4px;
+			pointer-events: none;
+		}
+		.uf-field__logos img {
+			display: block;
+			height: 18px;
+			width: auto;
+			max-width: none;
+			flex: 0 0 auto;
+		}
+		/* Overflow badge — lives inside .uf-field__logos as the last
+		   child, alongside the brand icons. Sized exactly like a brand
+		   icon (30x18) so swapping icons for the badge doesn't shift
+		   the row width. JS (in the showcase template) drives the
+		   show/hide via ResizeObserver on the field. */
+		.uf-field__logos-more {
+			display: none; /* JS sets to inline-flex when icons overflow */
+			align-items: center;
+			justify-content: center;
+			width: 30px;
+			height: 18px;
+			border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
+			border-radius: 3px;
+			font-size: 10px;
+			font-weight: 500;
+			line-height: 1;
+			color: currentColor;
+			opacity: 0.85;
+			flex: 0 0 auto;
+			box-sizing: border-box;
+		}
+		/* Hide the native WebKit search-cancel button (Chrome draws its own
+		   white X on hover/focus) — we're providing our own Gutenberg-styled
+		   clear button. */
+		.uf-field--float input[type="search"]::-webkit-search-cancel-button {
+			-webkit-appearance: none;
+			appearance: none;
+			display: none;
+		}
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] .uf-field--float input:hover:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] .uf-field--float input:focus:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] .uf-field--float select:hover,
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] .uf-field--float select:focus,
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] .uf-field--float textarea:hover,
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] .uf-field--float textarea:focus {
+			box-shadow: inset 0 -1px 0 0 var(--uf-field-border) !important;
+		}
+
+		/* Underline + Unfilled: no visible side edges → side padding becomes
+		   unnecessary decoration. Drop it so text aligns with the form's
+		   outer margin, tightening the look. Filled underline keeps its
+		   padding because the fill surface needs the breathing room. */
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"][data-fill="unfilled"] .uf-field--float input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="hidden"]),
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"][data-fill="unfilled"] .uf-field--float select,
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"][data-fill="unfilled"] .uf-field--float textarea {
+			padding-left: 0 !important;
+			padding-right: 0 !important;
+		}
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"][data-fill="unfilled"] .uf-field--float > label {
+			left: 0 !important;
+		}
+		/* Underline + Unfilled: trailing icons (chevron, magnifier, eye,
+		   clear X, calendar/clock, brand-icon cluster, number-spinner)
+		   all sit flush with the right end of the underline so every
+		   field type shares the same vertical column for its trailing
+		   glyph. */
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"][data-fill="unfilled"] .uf-field__icon,
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"][data-fill="unfilled"] .uf-field__logos,
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"][data-fill="unfilled"] .uf-field__spinner,
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"][data-fill="unfilled"] .uf-field--float:has(select)::after {
+			right: 0;
+		}
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"][data-fill="unfilled"] :is(.uf-field--trailing, .uf-field--number-spinner) input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="hidden"]) {
+			padding-right: 1.6em !important;
+		}
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"][data-fill="unfilled"] .uf-field--float select {
+			padding-right: 1.6em !important;
+		}
+		/* Underline + Unfilled + Above: tighter gap between label and input.
+		   With no fill and no side borders, the field chrome is minimal —
+		   so the label-to-input spacing can be tight without crowding. */
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"][data-fill="unfilled"][data-label="above"] .uf-field--float {
+			gap: 0;
+		}
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"][data-fill="unfilled"][data-label="above"] .uf-field--float input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="hidden"]),
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"][data-fill="unfilled"][data-label="above"] .uf-field--float select,
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"][data-fill="unfilled"][data-label="above"] .uf-field--float textarea {
+			padding-top: 0 !important;
+		}
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] :is(.uf-stepper, .wc-block-cart-items .wc-block-components-quantity-selector, .wc-block-mini-cart-items .wc-block-components-quantity-selector, form.cart .wc-block-components-quantity-selector) {
+			border-top-color: transparent !important;
+			border-left-color: transparent !important;
+			border-right-color: transparent !important;
+		}
+		/* Underline + Unfilled: no surface to curve → square. Underline +
+		   Filled: the fill follows --uf-field-radius, matching how text
+		   inputs behave. */
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"][data-fill="unfilled"] :is(.uf-stepper, .wc-block-cart-items .wc-block-components-quantity-selector, .wc-block-mini-cart-items .wc-block-components-quantity-selector, form.cart .wc-block-components-quantity-selector) {
+			border-radius: 0 !important;
+		}
+		/* Underline stepper hover/focus: keep the emphasis on the bottom
+		   edge only, matching the underline treatment of inputs. Without
+		   this, the default inset box-shadow paints a full outline and
+		   breaks the underline illusion. */
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] :is(.uf-stepper, .wc-block-cart-items .wc-block-components-quantity-selector, .wc-block-mini-cart-items .wc-block-components-quantity-selector, form.cart .wc-block-components-quantity-selector):hover,
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] :is(.uf-stepper, .wc-block-cart-items .wc-block-components-quantity-selector, .wc-block-mini-cart-items .wc-block-components-quantity-selector, form.cart .wc-block-components-quantity-selector):focus-within {
+			box-shadow: inset 0 -1px 0 0 currentColor;
+		}
+		/* Underline + Unfilled stepper: shove the − to the left edge and the
+		   + to the right edge so the icons align with the underline ends,
+		   matching the flush text of inputs in that variant. The buttons
+		   are `display: flex` with `justify-content: center` (base rule
+		   above) and `padding: 0`, so it's the flex axis — not padding —
+		   that needs to change to move the icon. `justify-content:
+		   flex-start/flex-end` pins the SVG to the corresponding edge.
+		   `text-align` is a no-op for centered flex children, so we
+		   don't bother setting it. No transform-origin needed here:
+		   the hover scale runs on the inner SVG (not the button), and
+		   the SVG's default `transform-origin: 50% 50%` keeps the glyph
+		   center pinned regardless of which edge the SVG is parked at. */
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"][data-fill="unfilled"] .uf-stepper button:first-of-type {
+			justify-content: flex-start !important;
+		}
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"][data-fill="unfilled"] .uf-stepper button:last-of-type {
+			justify-content: flex-end !important;
+		}
+
+		/* ===== Variant: Fill ======================================= */
+		:is(.uf-showcase, .uf-checkout, body)[data-fill="filled"] .uf-field--float input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="hidden"]),
+		:is(.uf-showcase, .uf-checkout, body)[data-fill="filled"] .uf-field--float select,
+		:is(.uf-showcase, .uf-checkout, body)[data-fill="filled"] .uf-field--float textarea,
+		:is(.uf-showcase, .uf-checkout, body)[data-fill="filled"] .uf-field--float .wc-block-components-text-input,
+		:is(.uf-showcase, .uf-checkout, body)[data-fill="filled"] .uf-field--float .wc-blocks-components-select,
+		:is(.uf-showcase, .uf-checkout, body)[data-fill="filled"] .uf-field--float .wc-blocks-components-select__container {
+			background-color: var(--uf-field-fill) !important;
+		}
+		:is(.uf-showcase, .uf-checkout, body)[data-fill="filled"] :is(.uf-stepper, .wc-block-cart-items .wc-block-components-quantity-selector, .wc-block-mini-cart-items .wc-block-components-quantity-selector, form.cart .wc-block-components-quantity-selector) {
+			background-color: var(--uf-field-fill) !important;
+		}
+
+		/* ===== Variant: Corners ==================================== */
+		:is(.uf-showcase, .uf-checkout, body)[data-corners="sharp"] { --uf-field-radius: 0; }
+		:is(.uf-showcase, .uf-checkout, body)[data-corners="rounded"] { --uf-field-radius: 4px; }
+		:is(.uf-showcase, .uf-checkout, body)[data-corners="pill"] { --uf-field-radius: 9999px; }
+		/* Textareas are taller than text inputs, so a full pill radius
+		   makes their corners bigger than the text-input pill. Cap the
+		   effective radius at half the shared field-track height so
+		   textarea corners visually match text inputs at any Corners
+		   setting. */
+		/* Cap textarea radius at half the field-track height. Applied to
+		   textareas that are explicitly opted in:
+		   • Showcase
+		   • Blog-post comment textarea (`.uf-comment-scope`)
+		   • Product review textarea (`.uf-product-review-scope`)
+		   Without the cap, `data-corners="pill"` would turn these tall
+		   controls into oval blobs. */
+		:is(.uf-showcase, .uf-checkout, .uf-comment-scope, .uf-product-review-scope) .uf-field--float textarea {
+			border-radius: min(var(--uf-field-radius, 4px), calc(var(--uf-field-height) / 2)) !important;
+		}
+		/* Pill variant: push label/value inward a bit so the round curve
+		   doesn't clip the first character. */
+		:is(.uf-showcase, .uf-checkout, body)[data-corners="pill"] .uf-field--float input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="hidden"]),
+		:is(.uf-showcase, .uf-checkout, body)[data-corners="pill"] .uf-field--float select,
+		:is(.uf-showcase, .uf-checkout, body)[data-corners="pill"] .uf-field--float textarea {
+			padding-left: calc(var(--_uf-pad-x) + 0.5em) !important;
+			padding-right: calc(var(--_uf-pad-x) + 0.5em) !important;
+		}
+		:is(.uf-showcase, .uf-checkout, body)[data-corners="pill"] .uf-field--float > label {
+			left: calc(var(--_uf-pad-x) + 0.5em);
+		}
+		:is(.uf-showcase, .uf-checkout, body)[data-corners="pill"] :is(.uf-stepper, .wc-block-cart-items .wc-block-components-quantity-selector, .wc-block-mini-cart-items .wc-block-components-quantity-selector, form.cart .wc-block-components-quantity-selector) {
+			border-radius: 9999px !important;
+		}
+		/* Apply radius to the stepper so it tracks the Corners setting. */
+		.uf-showcase .uf-stepper {
+			border-radius: var(--uf-field-radius, 4px);
+		}
+
+		/* ===== Variant: Label layout =============================== */
+		/* "Above" = label stacked on top in normal flow. Overrides the
+		   floating-label machinery: label becomes a regular block, input
+		   padding becomes symmetric (no top-heavy room for the floater). */
+		:is(.uf-showcase, .uf-checkout, body)[data-label="above"] .uf-field--float {
+			display: flex;
+			flex-direction: column-reverse;
+			/* Flex gap applies equally between every pair of children, so
+			   label→input and input→helper end up with matching spacing.
+			   Per-child margins on helper/error are zeroed below to let
+			   the single gap control the rhythm. Reducing this value
+			   tightens both spacings together. */
+			gap: 0.25em;
+		}
+		/* In Showcase's `.uf-grid` only, keep the wrap at content height so
+		   the absolute-positioned chevron/icon formulas can use a fixed
+		   reference point. Scoped to `.uf-grid > .uf-field--float` so
+		   Checkout's flex columns (which need the wrap to stretch to full
+		   column width) are NOT affected. */
+		.uf-grid > .uf-field--float {
+			align-self: start;
+		}
+		:is(.uf-showcase, .uf-checkout, body)[data-label="above"] .uf-field--float .uf-helper,
+		:is(.uf-showcase, .uf-checkout, body)[data-label="above"] .uf-field--float .uf-error {
+			margin-top: 0 !important;
+		}
+		:is(.uf-showcase, .uf-checkout, body)[data-label="above"] .uf-field--float > label {
+			position: static;
+			top: auto;
+			left: auto;
+			transform: none;
+			/* Match the shrunk-label size used in Inside mode (0.9 × small)
+			   so secondary text reads at a single scale across both modes.
+			   Also force line-height so the label's box is EXACTLY 1.08 ×
+			   label-font-size — the icon formulas below depend on that. */
+			font-size: calc(var(--uf-field-label-font-size) * 0.9) !important;
+			line-height: 1.2 !important;
+			opacity: 1 !important;
+			pointer-events: auto;
+		}
+		:is(.uf-showcase, .uf-checkout, body)[data-label="above"] .uf-field--float input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="hidden"]),
+		:is(.uf-showcase, .uf-checkout, body)[data-label="above"] .uf-field--float textarea,
+		:is(.uf-showcase, .uf-checkout, body)[data-label="above"] .uf-field--float select {
+			padding-top: calc(var(--uf-field-inset) + 0.1em) !important;
+			padding-bottom: calc(var(--uf-field-inset) + 0.1em) !important;
+		}
+		/* In "above" mode, the helper text should sit just below the input
+		   (not below the now-stacked label). The column-reverse flex puts
+		   helpers/errors AFTER the label visually. Re-order them. */
+		:is(.uf-showcase, .uf-checkout, body)[data-label="above"] .uf-field--float .uf-helper,
+		:is(.uf-showcase, .uf-checkout, body)[data-label="above"] .uf-field--float .uf-error {
+			order: 1;
+		}
+		:is(.uf-showcase, .uf-checkout, body)[data-label="above"] .uf-field--float > label { order: 3; }
+		:is(.uf-showcase, .uf-checkout, body)[data-label="above"] .uf-field--float input,
+		:is(.uf-showcase, .uf-checkout, body)[data-label="above"] .uf-field--float textarea,
+		:is(.uf-showcase, .uf-checkout, body)[data-label="above"] .uf-field--float select { order: 2; }
+		/* Trailing icons (eye, search clear, chevron) are absolutely positioned
+		   against the wrapper. In floating mode the wrapper == input box, so
+		   `top: 50%` centers on the input. In "above" mode the wrapper also
+		   contains the label stacked above the input, which shifts the
+		   wrapper's midpoint upward into the label area. Offset the icon back
+		   down by half the label stack (label height + gap) so it centers on
+		   the input again.
+		   Label height in above mode: 0.9 × 1.2 × label-font-size = 1.08 ×
+		   label-font-size. Plus the 0.4em flex-gap between label and input. */
+		/* In above mode the wrap contains label on top + field below,
+		   optionally followed by helper/error text. Two positioning
+		   strategies depending on whether a helper exists:
+		   (A) NO helper → field is flush with wrap's bottom edge, so
+		       anchor icons/chevrons from the BOTTOM onto the field's
+		       text center. Distance from wrap bottom to text center:
+		         border-bottom (1px) + pad-bot (inset + 0.1em) + lh/2
+		       Minus half the icon box (1.6em / 2 = 0.8em).
+		   (B) HAS helper → helper sits at wrap bottom; field sits above
+		       it. Anchor from the TOP using:
+		         label-h (1.08 × label-font) + gap (0.4em) + lh/2 + 1px
+		       With translateY(-50%) the icon center lands on the text. */
+		:is(.uf-showcase, .uf-checkout, body)[data-label="above"] .uf-field--float:not(:has(.uf-helper, .uf-error)) .uf-field__icon,
+		:is(.uf-showcase, .uf-checkout, body)[data-label="above"] .uf-field--float:not(:has(.uf-helper, .uf-error)) .uf-field__logos,
+		:is(.uf-showcase, .uf-checkout, body)[data-label="above"] .uf-field--float:not(:has(.uf-helper, .uf-error)):has(select)::after,
+		:is(.uf-showcase, .uf-checkout, body)[data-label="above"] .wc-blocks-components-select__container:not(:has(.uf-helper, .uf-error))::after {
+			/* `!important` required: base `.uf-field__icon { top: 50%; transform: translateY(-50%) }`
+			   rule otherwise wins the cascade here despite this rule's higher
+			   specificity — likely a Chromium quirk with `:is(...)` in the
+			   mix. Also disable the transform transition inherited from the
+			   base rule — without it, switching between label modes animates
+			   the transform from translateY(-50%) to none, leaving the icon
+			   visibly off-center during the animation window. */
+			top: auto !important;
+			bottom: calc(var(--uf-field-inset) + 0.1em + 0.6 * var(--uf-field-font-size) + 1px - 0.8em) !important;
+			transform: none !important;
+			transition: color 0.12s ease !important;
+		}
+		/* The chevron pseudo-element is 1.4em tall; the shared formula above
+		   subtracts 0.8em (half of the 1.6em icon buttons), leaving the chevron
+		   1.6px low. Subtract 0.7em (half of 1.4em) instead to land it on the
+		   exact vertical centre of the select input. */
+		:is(.uf-showcase, .uf-checkout, body)[data-label="above"] .uf-field--float:not(:has(.uf-helper, .uf-error)):has(select)::after,
+		:is(.uf-showcase, .uf-checkout, body)[data-label="above"] .wc-blocks-components-select__container:not(:has(.uf-helper, .uf-error))::after {
+			bottom: calc(var(--uf-field-inset) + 0.1em + 0.6 * var(--uf-field-font-size) + 1px - 0.7em) !important;
+		}
+		/* Override the `bottom` value for `.uf-field__logos`: the formula above
+		   subtracts 0.8em (half of 1.6em — the height of `.uf-field__icon`) to
+		   center single icons on the text line. Brand logos are 18px tall, so
+		   they need to subtract 9px instead, otherwise their center sits ~4px
+		   above the text line. */
+		:is(.uf-showcase, .uf-checkout, body)[data-label="above"] .uf-field--float:not(:has(.uf-helper, .uf-error)) .uf-field__logos {
+			bottom: calc(var(--uf-field-inset) + 0.1em + 0.6 * var(--uf-field-font-size) + 1px - 9px) !important;
+		}
+		:is(.uf-showcase, .uf-checkout, body)[data-label="above"] .uf-field--float:has(.uf-helper, .uf-error) .uf-field__icon,
+		:is(.uf-showcase, .uf-checkout, body)[data-label="above"] .uf-field--float:has(.uf-helper, .uf-error) .uf-field__logos,
+		:is(.uf-showcase, .uf-checkout, body)[data-label="above"] .uf-field--float:has(.uf-helper, .uf-error):has(select)::after {
+			/* top = label-height (1.08 × label-font) + flex-gap (0.4em)
+			        + half the field-box height (2 × (inset + 0.1em) + lh + 2px border) / 2
+			   With translateY(-50%) the icon center lands on the field box center. */
+			top: calc(1.08 * var(--uf-field-label-font-size) + 0.4em + var(--uf-field-inset) + 0.1em + 0.6 * var(--uf-field-font-size) + 1px);
+			bottom: auto;
+			transform: translateY(-50%);
+		}
+		/* Preserve the hover nudge on the eye/search icons. */
+		:is(.uf-showcase, .uf-checkout, body)[data-label="above"] .uf-field--float:not(:has(.uf-helper, .uf-error)) .uf-field__icon:hover {
+			transform: scale(1.1);
+		}
+		:is(.uf-showcase, .uf-checkout, body)[data-label="above"] .uf-field--float:has(.uf-helper, .uf-error) .uf-field__icon:hover {
+			transform: translateY(-50%) scale(1.1);
+		}
+		/* Underline + Unfilled + Above: align icons/chevrons with the text
+		   line inside the input/select. Anchor from the TOP so the helper
+		   text (when present) below the control can't push the icon around.
+		   The label renders at TWO sizes depending on state:
+		   • shrunk (0.9 × label-font): selects, textareas, filled inputs,
+		     focused inputs — label height = 1.08 × label-font
+		   • full (input font-size): empty text/password/search/etc. at rest
+		     — label height = 1.2 × font
+		   We pick the formula per-case via `:has()` so the icon centers on
+		   the text line in BOTH states. */
+		/* Default: shrunk label (selects, filled, focused). */
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"][data-fill="unfilled"][data-label="above"] .uf-field--float .uf-field__icon,
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"][data-fill="unfilled"][data-label="above"] .uf-field--float:has(select)::after,
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"][data-fill="unfilled"][data-label="above"] .wc-blocks-components-select__container::after {
+			top: calc(1.08 * var(--uf-field-label-font-size) + 1px + 0.6 * var(--uf-field-font-size));
+			bottom: auto;
+			transform: translateY(-50%);
+		}
+		/* Full-size label: empty input at rest (placeholder visible, not focused). */
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"][data-fill="unfilled"][data-label="above"] .uf-field--float:has(input:placeholder-shown:not(:focus)) .uf-field__icon {
+			top: calc(1.8 * var(--uf-field-font-size) + 1px);
+		}
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"][data-fill="unfilled"][data-label="above"] .uf-field--float .uf-field__icon:hover {
+			transform: translateY(-50%) scale(1.1);
+		}
+
+		.uf-field--float {
+			position: relative;
+
+			/* Inset + label-gap are defined at the outer root so other
+			   field-like controls (stepper, etc.) share the same values.
+
+			   Derived — don't tune directly.
+			   Shrunk label line-box height: 0.9 (font scale) × 1.2 (line-height).
+			   Uses the label font-size (raw small preset), not the value
+			   font-size (which has a 16px floor for iOS zoom protection). */
+			--_uf-label-h: calc(var(--uf-field-label-font-size) * 1.08);
+			/* CSS padding-top = visual top + room for the floated label.
+			   The *visual* top padding (edge to label) equals the inset. */
+			--_uf-pad-top: calc(var(--uf-field-inset) + var(--_uf-label-h) + var(--uf-field-label-gap));
+			--_uf-pad-bot: var(--uf-field-inset);
+			--_uf-pad-x: var(--uf-field-inset);
+			/* Matches --_uf-pad-bot on purpose: when the label floats up it
+			   sits the same distance from the top as the value sits from
+			   the bottom → filled group reads as vertically centered, no
+			   matter what label-gap we pick. */
+			--_uf-shrunk-top: var(--uf-field-inset);
+			/* Rest label position. The geometric center is
+			     `inset + (label-h + label-gap) / 2`
+			   but fonts place glyphs toward the top of their line-box, so
+			   pure math reads as "too high" to the eye. A small optical
+			   nudge (0.15em) pushes the label down so the *visible* text
+			   reads as vertically centered. The nudge scales with the
+			   font, so the correction stays proportional at any size. */
+			--_uf-rest-top: calc(var(--uf-field-inset) + (var(--_uf-label-h) + var(--uf-field-label-gap)) / 2 + var(--uf-field-label-font-size) * 0.15);
+			/* Select right-padding: inset + 1.5em for the chevron. Matches
+			   the perceived right padding of text inputs when the chevron
+			   sits at `right: var(--uf-field-inset)`. */
+			--_uf-select-pad-right: calc(var(--uf-field-inset) + var(--uf-field-font-size) * 1.5);
+		}
+		.uf-field--float input,
+		.uf-field--float textarea,
+		.uf-field--float select {
+			padding: var(--_uf-pad-top) var(--_uf-pad-x) var(--_uf-pad-bot) !important;
+			/* Explicit line-height so the rendered value-text height
+			   matches what the --uf-field-height formula assumes. */
+			line-height: 1.2 !important;
+		}
+		.uf-field--float textarea {
+			padding-top: var(--_uf-pad-top) !important;
+			min-height: 7.4em;
+			/* Without this, textareas sit on the baseline and reserve
+			   descender space below their visible bottom edge — that shows
+			   up as an extra ~7px gap before the helper text. Vertical-
+			   align top removes the descender, so textarea helpers sit
+			   at the same distance from the box as text-input helpers. */
+			vertical-align: top;
+		}
+		/* Textarea resize grip: replace the browser's default gray/white
+		   diagonal lines with a chevron that matches the label color. The
+		   color is hardcoded to the accent-2 token like the select chevron
+		   — we'll move to mask-image in the plugin for theme inheritance. */
+		/* ::-webkit-resizer has limited CSS support — mask-image doesn't
+		   apply in Chrome/Safari. We fall back to background-image with
+		   a neutral 50%-gray stroke that reads reasonably on both light
+		   and dark backgrounds. A proper fix (overlay element that can
+		   use CSS vars) lives in the plugin extraction. */
+		.uf-field--float textarea::-webkit-resizer {
+			background-color: transparent;
+			background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cg stroke='%23888' stroke-width='1' stroke-linecap='round' fill='none'%3E%3Cpath d='M13 3 L3 13 M13 7 L7 13 M13 11 L11 13'/%3E%3C/g%3E%3C/svg%3E");
+			background-repeat: no-repeat;
+			background-position: center;
+			background-size: 100% 100%;
+		}
+
+		/* Select: strip native chrome so CSS padding is respected. The
+		   chevron itself is drawn as a ::after pseudo on the wrapper (see
+		   below) using mask-image, so the glyph color can inherit via
+		   currentColor across any theme/style variation. */
+		.uf-field--float select {
+			appearance: none;
+			-webkit-appearance: none;
+			-moz-appearance: none;
+			padding-right: var(--_uf-select-pad-right) !important;
+		}
+		/* Hide WooCommerce's built-in chevron SVG so we can replace it with
+		   our own (unified-forms) chevron — same Gutenberg path, but
+		   sized/colored via our tokens for consistency with the rest of
+		   the form. No ancestor scope so the rule applies equally on the
+		   front-end and inside the Site Editor iframe preview (where the
+		   `.wp-block-woocommerce-checkout` wrapper may not be on body). */
+		.wc-blocks-components-select__expand {
+			display: none !important;
+		}
+		.wc-blocks-components-select__container {
+			position: relative;
+		}
+
+		/* Chevron via mask — color comes from background-color, which uses
+		   currentColor so the glyph always matches the theme's text color.
+		   Position anchored from the field-height center (not the wrapper's
+		   50%) so helper/error text below doesn't shift the chevron. The
+		   WC selector is a sibling (not nested under `:is()`) because
+		   `:is(…:has(…))` combined doesn't resolve reliably. The WC rule
+		   targets WC's native class directly — no ancestor — so it works
+		   regardless of whether PHP render_block / JS class-injection
+		   fired (important for Site Editor preview, where the filter
+		   often doesn't run). */
+		.uf-field--float:has(select)::after,
+		.wc-blocks-components-select__container::after {
+			content: "";
+			position: absolute;
+			/* Match the trailing-icon right inset so chevron and other
+			   trailing glyphs (eye, search) all sit at the same distance
+			   from the field's right edge. */
+			right: var(--_uf-pad-x);
+			top: calc(var(--uf-field-height) / 2);
+			transform: translateY(-50%);
+			/* Normalize font-size so `1.4em` resolves to the same pixel size
+			   as the trailing-icon SVGs (which also use --uf-field-font-size).
+			   Without this, the pseudo inherits the wrapper's body font and
+			   renders noticeably larger. */
+			font-size: var(--uf-field-font-size);
+			width: 1.4em;
+			height: 1.4em;
+			pointer-events: none;
+			background-color: currentColor;
+			-webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M17.5 11.6L12 16l-5.5-4.4.9-1.2L12 14l4.5-3.6 1 1.2z'/%3E%3C/svg%3E");
+			mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M17.5 11.6L12 16l-5.5-4.4.9-1.2L12 14l4.5-3.6 1 1.2z'/%3E%3C/svg%3E");
+			-webkit-mask-repeat: no-repeat;
+			mask-repeat: no-repeat;
+			-webkit-mask-position: center;
+			mask-position: center;
+			-webkit-mask-size: contain;
+			mask-size: contain;
+		}
+
+		/* === UNIFIED-FORMS : WooCommerce compat shims (Path B) ============
+		   The WC wrapper's *primary* class (`.wc-block-components-text-input`
+		   / `.wc-blocks-components-select__container`) is stripped by our
+		   render_block filter and replaced with `.uf-field--float`, so all
+		   styling is handled by the canonical showcase rules.
+
+		   What remains here is scoped to WC-internal *inner* classes
+		   (`__select`, `__input`, validation, ancillary outer wrappers)
+		   that the showcase doesn't emit but that still appear inside our
+		   `.uf-field--float` wrapper after WC renders. These rules ensure
+		   those inner elements behave transparently so they don't paint
+		   a second border / fill on top of the showcase wrapper.
+		   =============================================================== */
+		.uf-field--float .wc-blocks-components-select__select,
+		.uf-field--float input,
+		.uf-field--float textarea {
+			background: transparent !important;
+			box-shadow: none !important;
+		}
+		/* WC wraps its native <select> in a surplus outer div with its
+		   own class (`.wc-blocks-components-select`) — neutralize it so
+		   the only visible chrome is our `.uf-field--float` wrapper. */
+		.wc-blocks-components-select {
+			border: 0 !important;
+			background: transparent !important;
+			box-shadow: none !important;
+			padding: 0 !important;
+			margin: 0 !important;
+			min-height: 0 !important;
+		}
+
+		.uf-field--float > label {
+			position: absolute;
+			/* Same computed length as the input's padding-left, so the
+			   value text and the label line up exactly when the label is
+			   shrunk to the top-left (no "extra space" drift from em
+			   computing against the smaller shrunk font-size). */
+			left: var(--_uf-pad-x);
+			/* Anchor from the top of the wrapper (= top of the input) so the
+			   label position is independent of helper/error markup below. */
+			top: var(--_uf-rest-top);
+			transform: translateY(0);
+			transition: top 0.15s ease, font-size 0.15s ease, opacity 0.15s ease;
+			pointer-events: none;
+			color: var(--uf-field-label);
+			opacity: 1;
+			/* Zero any margin WC / theme apply to form labels globally
+			   (e.g. `.woocommerce-page label { margin-bottom: 0.7em }`).
+			   The flex gap on the wrap is the only label→field spacing
+			   we want. */
+			margin: 0 !important;
+			/* Rest-state label matches the input text size so at rest it
+			   reads like a real placeholder. On focus/fill it shrinks to
+			   `label-font-size × 0.9` via the rule below. */
+			font-size: var(--uf-field-font-size);
+			line-height: 1.2;
+			max-width: calc(100% - 28px);
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+		/* Textarea at rest uses the same centered rest-top as text inputs
+		   — label acts as a placeholder in the upper zone of the textarea. */
+		/* Shrunk state: select always; text/textarea when focused or filled.
+		   Slightly smaller than the rest-state label (90% of small) so the
+		   two-line layout reads with a clear hierarchy. */
+		/* Selects and textareas always show the shrunk label. For textareas
+		   this is deliberate: the tall content area makes a "centered
+		   placeholder-like" rest-state label look disconnected. */
+		.uf-field--float:has(select) > label,
+		.uf-field--float:has(textarea) > label,
+		.uf-field--float input:focus ~ label,
+		.uf-field--float input:not(:placeholder-shown) ~ label {
+			top: var(--_uf-shrunk-top) !important;
+			font-size: calc(var(--uf-field-label-font-size) * 0.9) !important;
+			opacity: 1 !important;
+		}
+		/* Keep the disabled look legible even with a floating label. */
+		.uf-field--float input:disabled ~ label,
+		.uf-field--float select:disabled ~ label,
+		.uf-field--float textarea:disabled ~ label {
+			opacity: .5;
+		}
+		.uf-field .uf-error {
+			display: block;
+			margin-top: 0.4em;
+			color: var(--uf-field-error);
+		}
+		.uf-field .uf-helper {
+			display: block;
+			margin-top: 0.4em;
+			color: var(--uf-field-label);
+			opacity: 1;
+		}
+		/* Optional-field marker: CSS-only " (optional)" suffix on the label.
+		   Apply .uf-field--optional to any field where the input is *not*
+		   required. Fields without this class are assumed required, so
+		   Checkout-style forms stay visually clean (most fields unmarked,
+		   only the few truly optional ones annotated). */
+		.uf-field--optional > label::after {
+			content: " (optional)";
+			opacity: .6;
+			font-weight: inherit;
+		}
+		.uf-field:has(:disabled) .uf-helper {
+			opacity: .45;
+		}
+		.uf-check, .uf-radio {
+			display: flex;
+			align-items: flex-start;
+			gap: 0.8em;
+			padding: 0.3em 0;
+			cursor: pointer;
+			/* Label text matches the field input font-size — radio/checkbox
+			   choices are primary content (the answer to a question), not
+			   secondary metadata, so they get the body-text weight rather
+			   than the smaller label/helper size. */
+			font-size: var(--uf-field-font-size);
+		}
+		/* Custom checkbox + radio chrome: sized in em so they scale with the
+		   field font-size, colored with the text/border token so they match
+		   the rest of the form. Native browser chrome is stripped. */
+		.uf-check input[type="checkbox"],
+		.uf-radio input[type="radio"] {
+			appearance: none;
+			-webkit-appearance: none;
+			-moz-appearance: none;
+			width: 1em;
+			height: 1em;
+			line-height: inherit;
+			margin: calc((1lh - 1em) / 2) 0 0;
+			flex: 0 0 auto;
+			background: transparent;
+			border: 1px solid var(--uf-field-border);
+			color: var(--uf-field-text);
+			font-size: var(--uf-field-font-size);
+			position: relative;
+			cursor: pointer;
+			transition: background-color 0.12s ease;
+		}
+		.uf-radio input[type="radio"] { border-radius: 50%; }
+		/* Checkbox inherits the field's Corners setting (Sharp = square,
+		   Rounded = matches fields), but caps at a small max radius so
+		   the Pill setting doesn't turn the checkbox into a full circle
+		   — that would visually collide with radio buttons. Result: Pill
+		   reads the same as Rounded on checkboxes. */
+		.uf-check input[type="checkbox"] {
+			border-radius: min(var(--uf-field-radius, 4px), 0.3em);
+		}
+
+		/* Focus: outer ring (inner stroke would be invisible on these tiny
+		   controls). Scales with the font. */
+		.uf-check input[type="checkbox"]:focus-visible,
+		.uf-radio input[type="radio"]:focus-visible {
+			outline: 1px solid var(--uf-field-border);
+			outline-offset: 0.15em;
+		}
+		/* Hover: beef the 1px border up to a 2px visual stroke via a 1px
+		   outside ring, matching the hover feel of text fields. Uses an
+		   outside ring (not an inset) so the effect is visible on checked
+		   states too — when the control is filled there's no inside for
+		   an inset shadow to show. */
+		.uf-check input[type="checkbox"]:hover,
+		.uf-radio input[type="radio"]:hover {
+			box-shadow: 0 0 0 1px var(--uf-field-border);
+		}
+
+		/* Checkbox — selected: filled with a checkmark. Check glyph color
+		   is hardcoded to the page base until we move to a mask-image in
+		   the plugin (same treatment as the select chevron). */
+		.uf-check input[type="checkbox"]:checked {
+			background-color: var(--uf-field-text);
+			border-color: var(--uf-field-text);
+		}
+		.uf-check input[type="checkbox"]:checked::after {
+			content: "";
+			position: absolute;
+			inset: 0;
+			/* Checkmark color = page background, so it stays visible on the
+			   filled checkbox (which is painted with currentColor). Theme's
+			   `base` preset is typically the page bg; if the theme lacks it,
+			   fall back to white on light themes / dark on dark themes via
+			   light-dark() as a safety net. */
+			background-color: var(--wp--preset--color--base, light-dark(#fff, #111));
+			-webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M16.5 7.5 10 13.9l-2.5-2.4-1 1 3.5 3.6 7.5-7.6z'/%3E%3C/svg%3E");
+			mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M16.5 7.5 10 13.9l-2.5-2.4-1 1 3.5 3.6 7.5-7.6z'/%3E%3C/svg%3E");
+			-webkit-mask-repeat: no-repeat;
+			mask-repeat: no-repeat;
+			-webkit-mask-position: center;
+			mask-position: center;
+			-webkit-mask-size: 110% 110%;
+			mask-size: 110% 110%;
+		}
+
+		/* Radio — selected: outline stays, inner dot appears. */
+		.uf-radio input[type="radio"]:checked::after {
+			content: "";
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			width: 0.5em;
+			height: 0.5em;
+			background-color: var(--uf-field-text);
+			border-radius: 50%;
+		}
+
+		/* Disabled: dim the whole row so the label gets the same treatment. */
+		.uf-check:has(input:disabled),
+		.uf-radio:has(input:disabled) {
+			opacity: 0.5;
+			cursor: not-allowed;
+		}
+		.uf-check input[type="checkbox"]:disabled,
+		.uf-radio input[type="radio"]:disabled {
+			cursor: not-allowed;
+		}
+		/* -----------------------------------------------------------------
+		   Toggle group — icon + label (+ optional sub-label) tiles.
+		   Use-case: checkout delivery method (Delivery / Pickup).
+		   Tokens used: --uf-field-border, --uf-field-bg, --uf-field-fill,
+		                --uf-field-text, --uf-field-radius, --uf-field-font-size
+		   ----------------------------------------------------------------- */
+		/* Shared container holds the border and radius; options sit flush inside. */
+		.uf-toggle-group {
+			display: flex;
+			align-items: stretch;
+			font-size: 0;
+			border: 0;
+			border-radius: var(--uf-field-radius, 0);
+			background-color: var(--uf-field-fill);
+			overflow: hidden;
+			padding: 4px;
+			gap: 0;
+		}
+		.uf-toggle-group__option {
+			position: relative;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			gap: 0;
+			padding: 10px 16px;
+			flex: 1;
+			cursor: pointer;
+			text-align: center;
+			background-color: transparent;
+			color: var(--uf-field-text);
+			border-radius: max( 0px, calc( var( --uf-field-radius, 0px ) - 4px ) );
+			transition: background-color 0.12s ease;
+		}
+		/* Visually hidden radio — still keyboard-accessible and screen-reader readable. */
+		.uf-toggle-group__option input[type="radio"] {
+			position: absolute;
+			opacity: 0;
+			width: 0;
+			height: 0;
+			pointer-events: none;
+		}
+		.uf-toggle-group__icon {
+			display: block;
+			width: 1.4rem;
+			height: 1.4rem;
+			flex-shrink: 0;
+		}
+		.uf-toggle-group__header {
+			display: flex;
+			flex-direction: row;
+			align-items: center;
+			gap: 6px;
+		}
+		.uf-toggle-group__label {
+			/* Match the input value font-size (same token used by inputs/
+			   textareas inside .uf-field--float). Keeps the option label
+			   visually consistent with field-value text across the showcase. */
+			font-size: var(--uf-field-font-size);
+		}
+		.uf-toggle-group__sublabel {
+			/* Match the helper-text font-size token (same one .uf-helper
+			   resolves to), so descriptions read at the same size as helper
+			   copy elsewhere on the page. */
+			font-size: var(--uf-field-helper-font-size);
+		}
+		/* Hover: solid background using the page base color (matches the
+		   selected state so hover reads as a preview of selection). */
+		.uf-toggle-group__option:hover {
+			background-color: color-mix(in srgb, var(--uf-field-text) 7%, transparent);
+		}
+		/* Selected: site background fill with text-color ring and text-color labels. */
+		.uf-toggle-group__option:has(input:checked) {
+			background-color: var(--wp--preset--color--base);
+			box-shadow: inset 0 0 0 1px var(--uf-field-text);
+		}
+		.uf-toggle-group__option:has(input:checked) .uf-toggle-group__header,
+		.uf-toggle-group__option:has(input:checked) .uf-toggle-group__sublabel {
+			color: var(--uf-field-text);
+		}
+		/* Focus: outer ring matching the checkbox/radio pattern. */
+		.uf-toggle-group__option:has(input:focus-visible) {
+			outline: 1px solid var(--uf-field-border);
+			outline-offset: 0.15em;
+		}
+		/* Disabled: dim the whole tile, block pointer. */
+		.uf-toggle-group__option:has(input:disabled) {
+			opacity: 0.5;
+			cursor: not-allowed;
+			pointer-events: none;
+		}
+		/* The toggle group is always rendered as filled — fill setting on
+		   other fields does not affect it. Selected option treatment is
+		   handled by the base .uf-toggle-group__option:has(input:checked)
+		   rule above. */
+		/* Variant: Border = underline — toggle group keeps its full outline border. */
+		/* Variant: Border = none — no wrapper border. */
+		:is(.uf-showcase, .uf-checkout, body)[data-border="none"] .uf-toggle-group {
+			border-color: transparent !important;
+		}
+		/* -----------------------------------------------------------------
+		   Unified quantity stepper — single source of truth.
+
+		   The same visual component is rendered across four render paths:
+		     • Showcase       .uf-stepper (our hand-rolled markup)
+		     • Cart           .wc-block-cart-items .wc-block-components-quantity-selector
+		     • Mini Cart      .wc-block-mini-cart-items .wc-block-components-quantity-selector
+		     • Single Product body.single-product form.cart .wc-block-components-quantity-selector
+
+		   All four selector paths share one rule block so a visual change
+		   here lands everywhere. Sizes are driven by `--uf-stepper-*`
+		   design tokens declared below; later these can be exposed via
+		   theme.json (`settings.custom.stepper.*`) to become editable in
+		   Global Styles. `!important` is on the properties that fight
+		   WC's core stylesheet — harmless for the Showcase path.
+		----------------------------------------------------------------- */
+		:root {
+			--uf-stepper-wrapper-width: 128px;
+			--uf-stepper-btn-width: 36px;
+			--uf-stepper-input-width: 56px;
+			--uf-stepper-input-padding-block: 8px;
+			--uf-stepper-btn-font-size: 16px;
+			/* Universal divider/border color — always `currentColor` at 20%
+			   alpha. Used everywhere a line/divider is drawn across a
+			   transparent surface (footer, header, mini cart, cart,
+			   checkout, my account…). `currentColor` resolves per-element,
+			   so the color adapts to whichever theme context the line is in. */
+			--uf-divider: color-mix(in srgb, currentColor 20%, transparent);
+		}
+		.uf-stepper,
+		.wc-block-cart-items .wc-block-components-quantity-selector,
+		.wc-block-mini-cart-items .wc-block-components-quantity-selector,
+		body.single-product form.cart .wc-block-components-quantity-selector {
+			display: inline-flex !important;
+			align-items: stretch !important;
+			border: 1px solid currentColor !important;
+			border-color: currentColor !important;
+			border-radius: var(--uf-field-radius, 4px) !important;
+			min-height: var(--uf-field-height) !important;
+			width: var(--uf-stepper-wrapper-width) !important;
+			box-sizing: border-box !important;
+			overflow: hidden !important;
+		}
+		/* Beat the WC rule
+		   `.wp-block-woocommerce-cart .wc-block-components-quantity-selector { border-color: … !important }`
+		   which ties our specificity (0,2,0) but loads later inline. Adding
+		   a `body` element selector bumps us to 0,2,1 so we win on tie. */
+		body .wc-block-cart-items .wc-block-components-quantity-selector,
+		body .wc-block-mini-cart-items .wc-block-components-quantity-selector,
+		body.single-product form.cart .wc-block-components-quantity-selector {
+			border-color: currentColor !important;
+		}
+		/* Single Product: the showcase design-token scope doesn't include
+		   `body.single-product form.cart`, so `--uf-field-height` isn't
+		   defined here and the stepper/button would otherwise collapse to
+		   content. Force the stepper to its intrinsic 55px (fallback for
+		   the design token) and stretch the add-to-cart button to match. */
+		body.single-product form.cart .wc-block-components-quantity-selector {
+			min-height: 55px !important;
+			height: 55px !important;
+		}
+		body.single-product form.cart .single_add_to_cart_button,
+		body.single-product form.cart button[name="add-to-cart"] {
+			align-self: stretch !important;
+			height: auto !important;
+			min-height: 55px !important;
+		}
+		/* Cart / Mini Cart only: push the stepper down a rhythm step. */
+		.wc-block-mini-cart-items .wc-block-components-quantity-selector,
+		.wc-block-cart-items .wc-block-components-quantity-selector {
+			margin-block-start: 1rem !important;
+		}
+		/* Wrapper hover/focus indicator: Showcase only. The WC variants
+		   intentionally have NO wrapper-level hover or focus indicator
+		   (the buttons' transform-scale animation is the feedback). */
+		.uf-stepper:hover,
+		.uf-stepper:focus-within {
+			box-shadow: inset 0 0 0 1px currentColor;
+		}
+		/* Border variants — mirror what `.uf-field--float` does per
+		   `data-border`. Underline keeps only the bottom edge; None
+		   drops the border entirely and uses a subtle fill on hover/focus.
+		   Scoped to the same selector list fields use, so steppers outside
+		   the Showcase/Checkout scopes keep the default full border. */
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] .uf-stepper {
+			border-top-color: transparent !important;
+			border-left-color: transparent !important;
+			border-right-color: transparent !important;
+			border-radius: 0 !important;
+		}
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] :is(.uf-stepper, .wc-block-cart-items .wc-block-components-quantity-selector, .wc-block-mini-cart-items .wc-block-components-quantity-selector, form.cart .wc-block-components-quantity-selector):hover,
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] :is(.uf-stepper, .wc-block-cart-items .wc-block-components-quantity-selector, .wc-block-mini-cart-items .wc-block-components-quantity-selector, form.cart .wc-block-components-quantity-selector):focus-within {
+			box-shadow: none;
+		}
+		:is(.uf-showcase, .uf-checkout, body)[data-border="none"] .uf-stepper {
+			border-color: transparent !important;
+		}
+		:is(.uf-showcase, .uf-checkout, body)[data-border="none"] :is(.uf-stepper, .wc-block-cart-items .wc-block-components-quantity-selector, .wc-block-mini-cart-items .wc-block-components-quantity-selector, form.cart .wc-block-components-quantity-selector):hover,
+		:is(.uf-showcase, .uf-checkout, body)[data-border="none"] :is(.uf-stepper, .wc-block-cart-items .wc-block-components-quantity-selector, .wc-block-mini-cart-items .wc-block-components-quantity-selector, form.cart .wc-block-components-quantity-selector):focus-within {
+			box-shadow: inset 0 0 0 999px color-mix(in srgb, var(--uf-field-text) 7%, transparent);
+		}
+		.uf-stepper button,
+		.wc-block-cart-items .wc-block-components-quantity-selector__button,
+		.wc-block-mini-cart-items .wc-block-components-quantity-selector__button,
+		body.single-product form.cart .wc-block-components-quantity-selector__button {
+			flex: 0 0 var(--uf-stepper-btn-width) !important;
+			width: var(--uf-stepper-btn-width) !important;
+			background: transparent !important;
+			color: inherit !important;
+			opacity: 1 !important;
+			border: 0 !important;
+			cursor: pointer !important;
+			font-size: var(--uf-stepper-btn-font-size) !important;
+			line-height: 1 !important;
+			/* No `transform` in this transition — the hover scale animates
+			   on the inner <svg>, not the button itself, so the button's
+			   box stays a fixed 36×min-height and can't reflow or drift. */
+			transition: color 0.12s ease !important;
+			display: inline-flex !important;
+			align-items: center !important;
+			justify-content: center !important;
+			padding: 0 !important;
+			box-sizing: border-box !important;
+		}
+		/* Disabled (e.g. "−" at quantity 1): keep the glyph in site text
+		   color, just dim slightly so the state is still readable. */
+		.wc-block-cart-items .wc-block-components-quantity-selector__button:disabled,
+		.wc-block-mini-cart-items .wc-block-components-quantity-selector__button:disabled,
+		body.single-product form.cart .wc-block-components-quantity-selector__button:disabled {
+			color: inherit !important;
+			opacity: 0.35 !important;
+			cursor: not-allowed !important;
+		}
+		/* Fully strip field chrome off the count + buttons in every state.
+		   The stepper's *outer* border is the only border; the cells are
+		   plain text/glyphs. The theme's generic field rule uses
+		   `:is(WC scopes) input:not([type=…])×5` which computes at 0,6,1 —
+		   so the matching override below mirrors that pattern and adds
+		   one more class to reach 0,7,1 and win cleanly (covers background,
+		   border, radius, box-shadow, outline, outline-offset). */
+		:is(.wp-block-woocommerce-checkout, .wp-block-woocommerce-cart, .wc-block-mini-cart__drawer, .uf-showcase, .uf-checkout) input.wc-block-components-quantity-selector__input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="hidden"]),
+		:is(.wp-block-woocommerce-checkout, .wp-block-woocommerce-cart, .wc-block-mini-cart__drawer, .uf-showcase, .uf-checkout) input.wc-block-components-quantity-selector__input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="hidden"]):hover,
+		:is(.wp-block-woocommerce-checkout, .wp-block-woocommerce-cart, .wc-block-mini-cart__drawer, .uf-showcase, .uf-checkout) input.wc-block-components-quantity-selector__input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="hidden"]):focus,
+		:is(.wp-block-woocommerce-checkout, .wp-block-woocommerce-cart, .wc-block-mini-cart__drawer, .uf-showcase, .uf-checkout) input.wc-block-components-quantity-selector__input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="hidden"]):focus-visible {
+			background: transparent !important;
+			background-color: transparent !important;
+			background-image: none !important;
+			border: 0 !important;
+			border-radius: 0 !important;
+			box-shadow: none !important;
+			outline: none !important;
+			outline-offset: 0 !important;
+		}
+		/* Companion rule: stays at 0,2,1 since WC's competing button rules
+		   are only 0,3,0 / 0,2,0 — mine wins comfortably here. */
+		body .wc-block-components-quantity-selector__input,
+		body .wc-block-components-quantity-selector__input:hover,
+		body .wc-block-components-quantity-selector__input:focus,
+		body .wc-block-components-quantity-selector__input:focus-visible,
+		body .wc-block-components-quantity-selector__input:active,
+		body .wc-block-components-quantity-selector__button,
+		body .wc-block-components-quantity-selector__button:hover,
+		body .wc-block-components-quantity-selector__button:focus,
+		body .wc-block-components-quantity-selector__button:focus-visible,
+		body .wc-block-components-quantity-selector__button:active {
+			background: transparent !important;
+			background-color: transparent !important;
+			background-image: none !important;
+			border: 0 !important;
+			border-radius: 0 !important;
+			box-shadow: none !important;
+			outline: none !important;
+			outline-offset: 0 !important;
+		}
+		/* Wrapper: kill only box-shadow/outline on hover/focus-within for
+		   the WC variants (DON'T touch border — that's the 1px stepper
+		   border we set intentionally). */
+		body .wc-block-components-quantity-selector:hover,
+		body .wc-block-components-quantity-selector:focus-within {
+			box-shadow: none !important;
+			outline: none !important;
+		}
+		/* Inner glyph: scale lives HERE (not on the button) so the button's
+		   layout box doesn't change size on hover, and the scale anchors
+		   to the SVG's own center (the HTML-context default for
+		   `transform-origin` on an inline <svg> is `50% 50%`). Because the
+		   minus/plus glyph is itself centered inside the SVG viewBox, the
+		   visible bar grows symmetrically around its actual on-screen
+		   center — no directional drift regardless of where the SVG sits
+		   inside the button (flex-start, center, or flex-end). */
+		.uf-stepper button svg,
+		.wc-block-cart-items .wc-block-components-quantity-selector__button svg,
+		.wc-block-mini-cart-items .wc-block-components-quantity-selector__button svg,
+		body.single-product form.cart .wc-block-components-quantity-selector__button svg {
+			width: 1.4em;
+			height: 1.4em;
+			display: block;
+			transition: transform 0.12s ease;
+			transform-origin: 50% 50%;
+		}
+		.uf-stepper button:hover svg,
+		.wc-block-cart-items .wc-block-components-quantity-selector__button:hover svg,
+		.wc-block-mini-cart-items .wc-block-components-quantity-selector__button:hover svg,
+		body.single-product form.cart .wc-block-components-quantity-selector__button:hover svg {
+			transform: scale(1.25);
+		}
+		.uf-stepper button:hover,
+		.wc-block-cart-items .wc-block-components-quantity-selector__button:hover,
+		.wc-block-mini-cart-items .wc-block-components-quantity-selector__button:hover,
+		body.single-product form.cart .wc-block-components-quantity-selector__button:hover {
+			background: transparent !important;
+			outline: 0 !important;
+		}
+		.uf-stepper button:active svg,
+		.wc-block-cart-items .wc-block-components-quantity-selector__button:active svg,
+		.wc-block-mini-cart-items .wc-block-components-quantity-selector__button:active svg,
+		body.single-product form.cart .wc-block-components-quantity-selector__button:active svg {
+			transform: scale(1.1);
+		}
+		.uf-stepper input,
+		.wc-block-cart-items .wc-block-components-quantity-selector__input,
+		.wc-block-mini-cart-items .wc-block-components-quantity-selector__input,
+		body.single-product form.cart .wc-block-components-quantity-selector__input {
+			flex: 0 0 var(--uf-stepper-input-width) !important;
+			width: var(--uf-stepper-input-width) !important;
+			min-width: 0 !important;
+			margin: 0 !important;
+			text-align: center !important;
+			padding: var(--uf-stepper-input-padding-block) 0 !important;
+			color: inherit !important;
+			font: inherit !important;
+			background: transparent !important;
+			border: 0 !important;
+			border-radius: 0 !important;
+			box-shadow: none !important;
+			-moz-appearance: textfield !important;
+			box-sizing: border-box !important;
+		}
+		/* Override the global field chrome — stepper IS the box, its inner
+		   input must have no background/border/radius/shadow, otherwise the
+		   global rule paints a rectangle behind the count. Selector
+		   specificity matches the global rule so this later rule wins. */
+		.uf-showcase .uf-stepper input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]) {
+			background: transparent !important;
+			border: 0 !important;
+			border-radius: 0 !important;
+			box-shadow: none !important;
+		}
+		.uf-stepper input::-webkit-outer-spin-button,
+		.uf-stepper input::-webkit-inner-spin-button,
+		.wc-block-cart-items .wc-block-components-quantity-selector__input::-webkit-outer-spin-button,
+		.wc-block-cart-items .wc-block-components-quantity-selector__input::-webkit-inner-spin-button,
+		.wc-block-mini-cart-items .wc-block-components-quantity-selector__input::-webkit-outer-spin-button,
+		.wc-block-mini-cart-items .wc-block-components-quantity-selector__input::-webkit-inner-spin-button,
+		body.single-product form.cart .wc-block-components-quantity-selector__input::-webkit-outer-spin-button,
+		body.single-product form.cart .wc-block-components-quantity-selector__input::-webkit-inner-spin-button {
+			-webkit-appearance: none;
+			margin: 0;
+		}
+		/* Explicitly override the global hover/focus chrome inside the
+		   stepper. Selector specificity matches the global rule so the
+		   "no inner field" reset wins. */
+		.uf-showcase .uf-stepper input:hover:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
+		.uf-showcase .uf-stepper input:focus:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]) {
+			outline: none !important;
+			box-shadow: none !important;
+		}
+		/* When the stepper is wrapped in `.uf-field--float` (so the label
+		   follows the same above/inside positioning as every other field),
+		   several rules from the float-label pattern would otherwise break
+		   the stepper's internals:
+
+		     1. `.uf-field--float input` sets large vertical padding for the
+		        floating-label slot. Specificity-bump here so the stepper
+		        input keeps its own 0 vertical padding instead.
+		     2. `.uf-field--float input` also assigns `order: 2` (so the
+		        input renders between label and helper-text in above mode).
+		        For the stepper that pushes the number AFTER the + button.
+		        Reset it to 0 so the input stays between the − and + buttons.
+		     3. The native ▲▼ spin buttons get shown by the input rule's
+		        default appearance. Re-apply the appearance:none override
+		        with the matching specificity.
+		     4. `[data-fill="filled"] .uf-field--float input` paints a fill
+		        on the input. The stepper draws its own outer frame and
+		        the input inside should stay transparent. Force it. */
+		:is(.uf-showcase, .uf-checkout, body) .uf-field--float .uf-stepper input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="hidden"]) {
+			padding: 0 var(--uf-stepper-input-padding-x, 0) !important;
+			order: 0 !important;
+			background: transparent !important;
+			background-color: transparent !important;
+		}
+		:is(.uf-showcase, .uf-checkout, body) .uf-field--float .uf-stepper input::-webkit-outer-spin-button,
+		:is(.uf-showcase, .uf-checkout, body) .uf-field--float .uf-stepper input::-webkit-inner-spin-button {
+			-webkit-appearance: none;
+			margin: 0;
+		}
+		/* In inside-label mode the floating label has no useful place to
+		   sit — the stepper's input is too narrow and the label would just
+		   overlap the value. Hide it. The label still renders in above
+		   mode where it sits cleanly on its own line above the stepper. */
+		:is(.uf-showcase, .uf-checkout, body):not([data-label="above"]) .uf-field--float:has(> .uf-stepper) > label {
+			display: none;
+		}
+		/* In above-label mode, regular fields are content-sized (no
+		   floating-label padding). Match that height for the stepper so it
+		   doesn't tower over its row. Formula mirrors the regular input
+		   height in above mode:
+		     2 × padding + line-height + 2 × border
+		     = 2 × (inset + 0.1rem) + 1.2rem + 2px.
+		   Uses `rem` (not `em`) because the stepper container inherits a
+		   non-16px font-size from somewhere up the tree, so `em` would
+		   resolve to the wrong value here. `rem` keeps the formula tied
+		   to the root font-size — the same reference the regular inputs
+		   use when their padding/line-height token resolves. */
+		:is(.uf-showcase, .uf-checkout, body)[data-label="above"] .uf-stepper {
+			min-height: 0 !important;
+			height: calc(2 * (var(--uf-field-inset) + 0.1rem) + 1.2rem + 2px) !important;
+		}
+		.uf-swatch {
+			display: inline-block;
+			width: 14px;
+			height: 14px;
+			vertical-align: middle;
+			border-radius: 3px;
+			margin-right: 8px;
+			border: 1px solid var(--uf-divider);
+		}
+
+		/* ===== WC Bookings — borrow showcase chrome ===============
+		   Replace the WC Bookings inline calendar / time-slot grid with
+		   showcase field shims (native <input type="date"> / <input type="time">
+		   / <select> wrapped in `.uf-field--float`). The shims are injected
+		   by a `wp_footer` script in functions.php; here we only need to:
+		     1. hide the WC default UIs (calendar grid, mm/dd/yyyy stub, slot list),
+		     2. strip the fieldset/border chrome,
+		     3. give the wrapper a sane vertical rhythm. */
+		body.single-product .wc-bookings-booking-form,
+		body.single-product .wc-bookings-booking-form fieldset {
+			border: 0 !important;
+			background: transparent !important;
+			padding: 0;
+			margin: 0;
+		}
+		body.single-product .wc-bookings-booking-form {
+			display: flex;
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 12px;
+		}
+		/* Booking form fields are showcase `.uf-field--float` markup but live
+		   inside `form.cart`, where some UA/theme rule sets <input>/<select>
+		   color directly to white instead of letting it inherit. Forcing
+		   `color: inherit` on the inputs lets them pick up the wrapper's
+		   `currentColor` (theme contrast) just like the showcase does, so the
+		   text + caret + label + icon all paint in the same color and the
+		   `--uf-field-fill` mix tints toward that color rather than white. */
+		body.single-product .wc-bookings-booking-form .uf-field input,
+		body.single-product .wc-bookings-booking-form .uf-field select,
+		body.single-product .wc-bookings-booking-form .uf-field textarea {
+			color: inherit !important;
+		}
+		/* Hide WC's default day picker (jQuery UI calendar + month/day/year
+		   stub + timezone block + on-page-load message) and time-slot list
+		   in favor of the showcase field shims. The hidden WC fields/links
+		   remain in the DOM so JS can sync to them on submit. */
+		body.single-product .wc-bookings-booking-form .wc-bookings-date-picker,
+		body.single-product .wc-bookings-booking-form .wc-bookings-date-picker-timezone-block,
+		body.single-product .wc-bookings-booking-form .wc-bookings-date-picker-date-fields,
+		body.single-product .wc-bookings-booking-form .ui-datepicker,
+		body.single-product .wc-bookings-booking-form .ui-datepicker-inline {
+			display: none !important;
+		}
+		/* Time slots — JS wraps each <a> in `<div class="wp-block-button is-style-outline">`
+		   so the theme's outline button block drives the visual treatment
+		   verbatim (same component as Mini Cart's "View cart"). All we own
+		   here is the GRID layout that tiles the slots — chrome comes from
+		   the theme. We also strip WC's own per-row defaults (float, fixed
+		   widths, list bullets). */
+		body.single-product .wc-bookings-booking-form .block-picker {
+			display: grid !important;
+			grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+			gap: 6px;
+			padding: 0 !important;
+			margin: 0 !important;
+			list-style: none;
+			border: 0;
+		}
+		body.single-product .wc-bookings-booking-form .block-picker > li {
+			float: none !important;
+			width: auto !important;
+			margin: 0 !important;
+			padding: 0 !important;
+			background: transparent !important;
+			border: 0 !important;
+			list-style: none;
+		}
+		body.single-product .wc-bookings-booking-form .block-picker > li > .wp-block-button {
+			display: block;
+			margin: 0;
+			width: 100%;
+		}
+		/* Undo WC Bookings' own slot styles (white alternating bg + zero
+		   border + fixed widths) that beat the theme's outline rule via
+		   `.wc-bookings-booking-form .block-picker li a` specificity.
+		   Once cleared, the theme's outline button styling drives the
+		   whole look — same component as Mini Cart's "View cart". */
+		body.single-product .wc-bookings-booking-form .block-picker > li > .wp-block-button > .wp-block-button__link,
+		body.single-product .wc-bookings-booking-form .block-picker > li:nth-child(2n+1) > .wp-block-button > .wp-block-button__link,
+		body.single-product .wc-bookings-booking-form .block-picker > li:nth-child(2n) > .wp-block-button > .wp-block-button__link {
+			background: transparent;
+			background-color: transparent;
+			color: inherit;
+			width: 100%;
+		}
+		/* The shim fields use the showcase `.uf-field--float` look.
+		   No additional rules needed — uf-forms.css already drives the
+		   chrome via `body.single-product form.cart` scope. */
