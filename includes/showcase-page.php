@@ -77,38 +77,41 @@ add_action(
 			},
 			100
 		);
-		// CSS fail-safe — paint a hide rule directly into the iframe's
-		// <head>. Wins over anything that might still try to display
-		// or reserve space for the bar.
+		// CSS fail-safe — hide the admin bar element if WP renders one,
+		// and GUARANTEE the html.margin-top:32px reservation exists. The
+		// parent admin page geometrically shifts the iframe up by 32px
+		// (see `.ufc-admin-card__body > iframe` in admin-settings-page.php)
+		// so this 32px reservation lands BEHIND the card's top edge and
+		// is invisible — same place the (hidden) admin bar would have
+		// occupied. Forcing the reservation to exist means the
+		// geometric shift is correct regardless of whether WP.com's
+		// performance optimizer reorders admin-bar.min.css, dequeues
+		// fire, or anything else changes about how WP loads the bar's
+		// stylesheet.
 		add_action(
 			'wp_head',
 			function () {
 				echo '<style id="ufc-iframe-no-admin-bar">'
 					. '#wpadminbar{display:none!important}'
-					. 'html{padding-top:0!important;margin-top:0!important}'
+					. 'html{margin-top:32px!important;padding-top:0!important}'
 					. 'body{margin-top:0!important}'
 					. '</style>';
 			},
 			999
 		);
 		// JS DOM-removal — last layer. CSS `display:none` only hides
-		// the element; WordPress's accommodation rules (the
-		// `html.wp-toolbar` padding, `body.admin-bar` class, etc.)
-		// can still reserve space for a hidden bar on hosts where
-		// the bar IS injected into the DOM despite all the PHP-side
-		// removals above. So pull the element out of the DOM
-		// entirely and strip the body/html classes that trigger any
-		// further accommodation. Runs both immediately (covers the
-		// case where the bar is already in the parsed HTML by the
-		// time the script executes) and on DOMContentLoaded (covers
-		// the case where some Calypso/WP.com script injects the bar
-		// post-load). Uses a MutationObserver so any later
-		// re-injection is also caught and removed.
+		// the element; the parent's geometric clip hides any 32px-tall
+		// strip at the top of the iframe regardless. Removing the
+		// element from the DOM still helps — it prevents any of the bar's
+		// own JS (keyboard shortcuts, hover handlers) from running inside
+		// the iframe. Also stamps the 32px html-margin reservation
+		// inline + !important so the geometric clip in the parent
+		// always has something to clip.
 		add_action(
 			'wp_head',
 			function () {
 				echo '<script id="ufc-iframe-purge-admin-bar">'
-					. '(function(){function purge(){var b=document.getElementById("wpadminbar");if(b&&b.parentNode)b.parentNode.removeChild(b);if(document.documentElement){document.documentElement.classList.remove("wp-toolbar");document.documentElement.style.setProperty("margin-top","0","important");document.documentElement.style.setProperty("padding-top","0","important");}if(document.body){document.body.classList.remove("admin-bar");document.body.style.setProperty("margin-top","0","important");}}purge();document.addEventListener("DOMContentLoaded",purge);if(window.MutationObserver){new MutationObserver(purge).observe(document.documentElement,{childList:true,subtree:true});}})();'
+					. '(function(){function purge(){var b=document.getElementById("wpadminbar");if(b&&b.parentNode)b.parentNode.removeChild(b);if(document.documentElement){document.documentElement.classList.remove("wp-toolbar");document.documentElement.style.setProperty("margin-top","32px","important");document.documentElement.style.setProperty("padding-top","0","important");}if(document.body){document.body.classList.remove("admin-bar");document.body.style.setProperty("margin-top","0","important");}}purge();document.addEventListener("DOMContentLoaded",purge);if(window.MutationObserver){new MutationObserver(purge).observe(document.documentElement,{childList:true,subtree:true});}})();'
 					. '</script>';
 			},
 			999
@@ -124,7 +127,7 @@ add_action(
 			'wp_footer',
 			function () {
 				echo '<style id="ufc-iframe-no-admin-bar-footer">'
-					. 'html{margin-top:0!important;padding-top:0!important}'
+					. 'html{margin-top:32px!important;padding-top:0!important}'
 					. 'body{margin-top:0!important}'
 					. '</style>';
 			},

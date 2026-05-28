@@ -143,14 +143,47 @@ add_action(
 					}
 					.ufc-admin-card__body {
 						flex: 1 1 auto;
-						display: flex;
+						/* Positioning context for the absolute-positioned iframe
+						   inside. `overflow: hidden` clips the iframe's top 32px
+						   (see the iframe rule below). */
+						position: relative;
+						overflow: hidden;
 						min-height: 500px;
 					}
+					/* Geometric containment of the iframe's top 32px.
+					   The iframe loads `/?uf_showcase=1&uf_embed=1` — a frontend
+					   WordPress page. For logged-in users, WordPress reserves
+					   32px at the top of every frontend page for the admin bar
+					   (`html { margin-top: 32px !important }` from
+					   `admin-bar.min.css`), and on WordPress.com / Calypso
+					   the proxy layer additionally injects an `#atomic-proxy-bar`
+					   chip (the "PROXIED V2" badge) positioned fixed at top:0
+					   inside the iframe. We've tried — and shipped — multiple
+					   defenses to dequeue / remove / hide all of that, but
+					   WP.com's performance optimizer keeps re-injecting
+					   `admin-bar.min.css` into the iframe `<body>` (so its
+					   `!important` rules win source-order over our `<head>`
+					   overrides), and Calypso adds the proxy chip via JS that
+					   we don't control.
+					   Instead of fighting which CSS rule wins, treat the top
+					   32px of the iframe as STRUCTURALLY UNWANTED, regardless
+					   of what lives there. Shift the iframe up by 32px (via
+					   `top: -32px`), make it 32px taller so the visible
+					   content area still fills the card, and let the parent's
+					   `overflow: hidden` clip whatever sits in that top 32px.
+					   Admin bar element, proxy bar chip, margin reservation,
+					   anything else WP / WP.com renders there in the future —
+					   all of it gets clipped behind the card's top edge.
+					   The showcase content itself sits at iframe-y=32 (because
+					   the html.margin-top reservation is intact), so after the
+					   shift it lands at parent-y=0+32=32 — flush with the
+					   admin bar bottom. */
 					.ufc-admin-card__body > iframe {
-						flex: 1 1 auto;
-						min-width: 0;
-						min-height: 0;
+						position: absolute;
+						top: -32px;
+						left: 0;
 						width: 100%;
+						height: calc( 100% + 32px );
 						border: 0;
 						display: block;
 					}
