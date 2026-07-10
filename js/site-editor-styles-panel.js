@@ -160,11 +160,12 @@
 		return document.querySelector( '.global-styles-ui-sidebar__navigator-provider' )
 			|| document.querySelector( '.edit-site-styles' );
 	}
-	// Anchor the preview to the native canvas itself (its rect already
-	// includes the gap + surround), so we don't stack our own padding on top.
+	// Anchor to the canvas CONTAINER (symmetric), not the editor-canvas iframe:
+	// that iframe sits flush-left (0 inset) while inset elsewhere, which made
+	// our frame's gap uneven (tight on the left). The container gives a
+	// symmetric base so the padding produces an even margin on all four sides.
 	function previewAnchor() {
-		return document.querySelector( 'iframe[name="editor-canvas"]' )
-			|| document.querySelector( '.edit-site-layout__canvas-container' );
+		return document.querySelector( '.edit-site-layout__canvas-container' );
 	}
 
 	function reposition() {
