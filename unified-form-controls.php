@@ -38,9 +38,10 @@ require_once UNIFIED_FORM_CONTROLS_PATH . 'includes/showcase-page.php';
 require_once UNIFIED_FORM_CONTROLS_PATH . 'includes/site-editor-form-fields.php';
 require_once UNIFIED_FORM_CONTROLS_PATH . 'includes/flatpickr.php';
 require_once UNIFIED_FORM_CONTROLS_PATH . 'includes/admin-settings-page.php';
+require_once UNIFIED_FORM_CONTROLS_PATH . 'includes/site-editor-styles-panel.php';
 
 /**
- * Showcase stylesheets. Two files, loaded in cascade order:
+ * Form-control stylesheets. Two files, loaded in cascade order:
  *
  *   1. uf-tokens.css — `--uf-field-*` token defaults + base consumer
  *      rules (background / color / border-radius / font-size on text
@@ -54,15 +55,17 @@ require_once UNIFIED_FORM_CONTROLS_PATH . 'includes/admin-settings-page.php';
  *      above so cascade order matters — declared as a wp_enqueue
  *      dependency.
  *
- * Both gated to `?uf_showcase=1` to match the rest of the plugin's scope.
+ * Registered on `enqueue_block_assets` so the CSS reaches every
+ * context that uses `.uf-field` markup: front-end page views (My
+ * Account, Checkout, Coming Soon, Cart, Product), the post editor,
+ * and Site Editor iframe previews. Gating these to `?uf_showcase=1`
+ * would break every other template that relies on the floating-label
+ * markup — those templates use `.uf-field` directly even though they
+ * have nothing to do with the showcase.
  */
 add_action(
-	'wp_enqueue_scripts',
+	'enqueue_block_assets',
 	function () {
-		if ( ! function_exists( 'ufc_showcase_panel_is_active' ) || ! ufc_showcase_panel_is_active() ) {
-			return;
-		}
-
 		$tokens_path = UNIFIED_FORM_CONTROLS_PATH . 'css/uf-tokens.css';
 		wp_enqueue_style(
 			'uf-tokens',

@@ -26,17 +26,38 @@ if ( ! defined( 'ABSPATH' ) ) {
 add_action(
 	'wp_footer',
 	function () {
-		// Showcase-only scope — see plugin main file.
-		if ( ! function_exists( 'ufc_showcase_panel_is_active' ) || ! ufc_showcase_panel_is_active() ) {
-			return;
+		// Listener must be injected on every front-end page (and every
+		// Site Editor iframe preview) so changes in the "Forms fields"
+		// sidebar reach the canvas regardless of which template the user
+		// is previewing. Gating this to `?uf_showcase=1` broke the live
+		// preview on Checkout, My Account, Coming Soon, etc.
+		// Read from the global styles entity. Two important details:
+		//
+		//  1. `wp_get_global_settings($path)` falls back to the FULL
+		//     settings tree when `$path` does not exist in the cascade.
+		//     A missing `custom.ufFields` therefore returns top-level
+		//     setting keys like `border` (block-supports declaration:
+		//     `{color: true, style: true, width: true, radius: true}`).
+		//     The strict `is_string()` checks below reject that shape
+		//     naturally — anything that isn't the expected string payload
+		//     falls through to the hard-coded default.
+		//
+		//  2. Legacy `uf_field_*` options are intentionally NOT consulted.
+		//     They pre-date the entity-backed save and stayed out of sync
+		//     (e.g. `uf_field_fill = 'filled'` survived even after the
+		//     panel default was changed to `'unfilled'`), so reading them
+		//     resurfaced wrong defaults. The entity is the single source
+		//     of truth now.
+		$uf = wp_get_global_settings( array( 'custom', 'ufFields' ) );
+		if ( ! is_array( $uf ) ) {
+			$uf = array();
 		}
-		// Read from global styles first; fall back to legacy WP options.
-		$uf         = wp_get_global_settings( array( 'custom', 'ufFields' ) ) ?: array();
-		$border     = ! empty( $uf['border'] )    ? $uf['border']    : get_option( 'uf_field_border',     'outline'  );
-		$fill       = ! empty( $uf['fill'] )      ? $uf['fill']      : get_option( 'uf_field_fill',       'unfilled' );
-		$radius     = ! empty( $uf['radius'] )    ? $uf['radius']    : get_option( 'uf_field_radius',     '4px'      );
-		$label      = ! empty( $uf['label'] )     ? $uf['label']     : get_option( 'uf_field_label',      'inside'   );
-		$fill_color = isset( $uf['fillColor'] )   ? $uf['fillColor'] : get_option( 'uf_field_fill_color', ''         );
+
+		$border     = ( isset( $uf['border'] )    && is_string( $uf['border'] ) )    ? $uf['border']    : 'outline';
+		$fill       = ( isset( $uf['fill'] )      && is_string( $uf['fill'] ) )      ? $uf['fill']      : 'unfilled';
+		$radius     = ( isset( $uf['radius'] )    && is_string( $uf['radius'] ) )    ? $uf['radius']    : '4px';
+		$label      = ( isset( $uf['label'] )     && is_string( $uf['label'] ) )     ? $uf['label']     : 'inside';
+		$fill_color = ( isset( $uf['fillColor'] ) && is_string( $uf['fillColor'] ) ) ? $uf['fillColor'] : '';
 
 		$r       = floatval( $radius );
 		$corners = $r === 0.0 ? 'sharp' : ( $r >= 999 ? 'pill' : 'rounded' );

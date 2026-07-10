@@ -1,0 +1,89 @@
+/**
+ * Site Editor Form controls sub-panel + preview iframe.
+ *
+ * Our own injected nodes (appended to <body>, outside the editor React
+ * tree). Kept intentionally minimal — the controls themselves are
+ * @wordpress/components and inherit the editor's design-system styling.
+ *
+ * @package UnifiedFormControls
+ */
+
+/* Injected Styles-list item — inherits the native Navigator.Button classes;
+   just make sure the pointer reads as clickable. */
+#ufc-se-item {
+	cursor: pointer;
+}
+
+/* Sub-panel pinned over the Styles column (.edit-site-styles). Geometry is
+   set inline from JS; this is chrome + layout only. */
+.ufc-se-overlay {
+	position: fixed;
+	z-index: 1000;
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	background: #fff;
+	color: #1e1e1e;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+	font-size: 13px;
+	line-height: 1.4;
+}
+
+.ufc-se-overlay__header {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	box-sizing: border-box;
+	min-height: 48px;
+	padding: 6px 12px;
+	border-bottom: 1px solid #e0e0e0;
+}
+
+.ufc-se-back {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 36px;
+	height: 36px;
+	padding: 0;
+	background: transparent;
+	border: none;
+	border-radius: 2px;
+	color: #1e1e1e;
+	cursor: pointer;
+}
+
+.ufc-se-back:hover {
+	background: #f0f0f0;
+}
+
+.ufc-se-title {
+	font-size: 13px;
+	font-weight: 500;
+}
+
+.ufc-se-overlay__body {
+	flex: 1 1 auto;
+	overflow-y: auto;
+	padding: 16px;
+}
+
+/* Live preview pinned over the canvas (.edit-site-layout__canvas-container).
+   Wrapper geometry is set inline from JS; overflow:hidden clips the
+   showcase's own left panel + top bar off the iframe inside it. */
+.ufc-se-preview {
+	position: fixed;
+	z-index: 999;
+	overflow: hidden;
+	border: 0;
+	background: #fff;
+}
+
+/* Iframe is shifted left/up (inline styles from JS) so the clipped-away
+   region is the showcase's settings panel + admin-bar reservation. */
+.ufc-se-iframe {
+	position: absolute;
+	border: 0;
+	background: #fff;
+}

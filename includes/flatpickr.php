@@ -25,10 +25,11 @@ function ufc_enqueue_flatpickr() {
 	if ( is_admin() ) {
 		return;
 	}
-	// Showcase-only scope — see plugin main file.
-	if ( ! function_exists( 'ufc_showcase_panel_is_active' ) || ! ufc_showcase_panel_is_active() ) {
-		return;
-	}
+	// Front-end only: Flatpickr is needed wherever a `.uf-field` date input
+	// renders (bookable product pages, the showcase page, etc.). Gating
+	// this to `?uf_showcase=1` broke the booking modal — the trigger button
+	// calls `_flatpickr.open()` which is a no-op when the library isn't on
+	// the page.
 	wp_enqueue_style(
 		'flatpickr',
 		'https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css',
