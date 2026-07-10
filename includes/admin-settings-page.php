@@ -85,6 +85,15 @@ add_action(
 add_action(
 	'admin_menu',
 	function () {
+		// Menu entry hidden: the Form controls settings now live in the Site
+		// Editor under Styles (see includes/site-editor-styles-panel.php), so
+		// this Appearance > Form controls submenu would be a confusing
+		// duplicate. Registration is short-circuited here; the add_theme_page
+		// call and its render callback below are intentionally left intact so
+		// this is trivially reversible — delete the `return;` on the next line
+		// to restore the Appearance > Form controls menu item.
+		return;
+
 		// On classic themes there's nothing the plugin can configure — see
 		// `ufc_active_theme_is_block_theme()` for the rationale. Skip the
 		// menu registration entirely so the submenu doesn't appear under
