@@ -138,8 +138,11 @@ add_action(
 				opacity: 1;
 				margin: 40px 0 16px;
 				padding-top: 8px;
-				border-top: 1px solid color-mix( in srgb, ' . $contrast . ' 10%, transparent );
 				color: color-mix( in srgb, ' . $contrast . ' 60%, transparent );
+				/* Base the rule on currentColor (= the heading color just set,
+				   contrast@60%) so 10% of it compounds to ~6% — exactly what the
+				   Style Book renders (its border-top uses currentColor too). */
+				border-top: 1px solid color-mix( in srgb, currentColor 10%, transparent );
 			}
 			.uf-showcase section:first-of-type h2 { margin-top: 0; }
 		';

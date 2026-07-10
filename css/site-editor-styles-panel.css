@@ -80,15 +80,14 @@
 	}
 }
 
-/* Live preview pinned over the native canvas. Geometry is set inline from
-   JS to match the editor-canvas rect EXACTLY (no padding) so the gap to the
-   sidebar and the dark surround come from the editor itself — not stacked on
-   top of it. Dark background so nothing white shows behind the iframe. */
+/* Live preview pinned over the native canvas. Padding gives the dark
+   surround that insets the framed preview on all four sides. Dark background
+   so nothing white shows behind the iframe. */
 .ufc-se-preview {
 	position: fixed;
 	z-index: 999;
 	box-sizing: border-box;
-	padding: 0;
+	padding: 12px;
 	background: #1e1e1e;
 }
 
