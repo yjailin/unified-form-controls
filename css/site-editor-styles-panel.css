@@ -1,89 +1,125 @@
 /**
  * Site Editor Form controls sub-panel + preview iframe.
  *
- * Our own injected nodes (appended to <body>, outside the editor React
- * tree). Kept intentionally minimal — the controls themselves are
- * @wordpress/components and inherit the editor's design-system styling.
+ * The panel header, back link, and body spacing are built in JS from the
+ * same @wordpress/components primitives (Spacer/VStack/HStack/Heading/Button)
+ * and native CSS class names the real ScreenHeader/ScreenBody use, so this
+ * file carries no hand-tuned header/spacing values — only the clip/animation
+ * scaffolding and the exact Navigator transition keyframes.
  *
  * @package UnifiedFormControls
  */
 
-/* Injected Styles-list item — inherits the native Navigator.Button classes;
-   just make sure the pointer reads as clickable. */
+/* Injected Styles-list item — inherits the native Navigator.Button classes. */
 #ufc-se-item {
 	cursor: pointer;
 }
 
-/* Sub-panel pinned over the Styles column (.edit-site-styles). Geometry is
-   set inline from JS; this is chrome + layout only. */
+/* Clip container pinned over the Styles column (.edit-site-styles). Geometry
+   is set inline from JS. Transparent + overflow:hidden so (a) the panel's
+   slide overflow is clipped like the native navigator wrapper, and (b) the
+   outgoing native root screen shows through beneath the sliding panel. */
 .ufc-se-overlay {
 	position: fixed;
 	z-index: 1000;
-	box-sizing: border-box;
+	overflow: hidden;
+	background: transparent;
+}
+
+/* The animated screen: opaque, fills the clip container, scrolls as one
+   screen (like the native navigator screen). Bottom corners rounded to
+   match the native sidebar (.edit-site-layout__area border-radius: 12px). */
+.ufc-se-panel {
+	position: absolute;
+	inset: 0;
 	display: flex;
 	flex-direction: column;
-	overflow: hidden;
+	overflow-x: hidden;
+	overflow-y: auto;
 	background: #fff;
 	color: #1e1e1e;
-	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-	font-size: 13px;
-	line-height: 1.4;
+	border-bottom-left-radius: 12px;
+	border-bottom-right-radius: 12px;
 }
 
-.ufc-se-overlay__header {
-	display: flex;
-	align-items: center;
-	gap: 4px;
-	box-sizing: border-box;
-	min-height: 48px;
-	padding: 6px 12px;
-	border-bottom: 1px solid #e0e0e0;
+/* ---- Native Navigator transition -----------------------------------------
+   Values taken verbatim from @wordpress/components navigator/styles.ts and
+   confirmed against the live stock build (computed on a real screen change):
+     slide  300ms cubic-bezier(0.33, 0, 0, 1)   fill both
+     fade    70ms linear   in-delay 70ms / out-delay 40ms   fill both
+   Forward:  incoming translateX(100px)->0, outgoing 0->translateX(-80px)
+   Back:     incoming translateX(-100px)->0, outgoing 0->translateX(80px)  */
+@keyframes ufc-fade-in         { from { opacity: 0; } }
+@keyframes ufc-fade-out        { to   { opacity: 0; } }
+@keyframes ufc-slide-from-right { from { transform: translateX(100px); } }
+@keyframes ufc-slide-to-left    { to   { transform: translateX(-80px); } }
+@keyframes ufc-slide-from-left  { from { transform: translateX(-100px); } }
+@keyframes ufc-slide-to-right   { to   { transform: translateX(80px); } }
+
+/* Gated exactly like the native animation (skipped under reduced motion). */
+@media not (prefers-reduced-motion) {
+	.ufc-anim-panel-in {
+		animation:
+			ufc-fade-in 70ms linear 70ms both,
+			ufc-slide-from-right 300ms cubic-bezier(0.33, 0, 0, 1) both;
+	}
+	.ufc-anim-panel-out {
+		animation:
+			ufc-fade-out 70ms linear 40ms both,
+			ufc-slide-to-right 300ms cubic-bezier(0.33, 0, 0, 1) both;
+	}
+	.ufc-anim-root-out {
+		animation:
+			ufc-fade-out 70ms linear 40ms both,
+			ufc-slide-to-left 300ms cubic-bezier(0.33, 0, 0, 1) both;
+	}
+	.ufc-anim-root-in {
+		animation:
+			ufc-fade-in 70ms linear 70ms both,
+			ufc-slide-from-left 300ms cubic-bezier(0.33, 0, 0, 1) both;
+	}
 }
 
-.ufc-se-back {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	width: 36px;
-	height: 36px;
-	padding: 0;
-	background: transparent;
-	border: none;
-	border-radius: 2px;
-	color: #1e1e1e;
-	cursor: pointer;
-}
-
-.ufc-se-back:hover {
-	background: #f0f0f0;
-}
-
-.ufc-se-title {
-	font-size: 13px;
-	font-weight: 500;
-}
-
-.ufc-se-overlay__body {
-	flex: 1 1 auto;
-	overflow-y: auto;
-	padding: 16px;
-}
-
-/* Live preview pinned over the canvas (.edit-site-layout__canvas-container).
-   Wrapper geometry is set inline from JS; overflow:hidden clips the
-   showcase's own left panel + top bar off the iframe inside it. */
+/* Live preview pinned over the native canvas. Geometry is set inline from
+   JS to match the editor-canvas rect EXACTLY (no padding) so the gap to the
+   sidebar and the dark surround come from the editor itself — not stacked on
+   top of it. Dark background so nothing white shows behind the iframe. */
 .ufc-se-preview {
 	position: fixed;
 	z-index: 999;
+	box-sizing: border-box;
+	padding: 0;
+	background: #1e1e1e;
+}
+
+/* Rounded, clipped inner frame — matches the native canvas frame
+   (border-radius 12px + the same soft drop shadow). overflow:hidden clips
+   the showcase's own left panel + top bar off the shifted iframe; the
+   translateZ(0) forces that rounded clip to actually apply to the <iframe>
+   (browsers otherwise leave iframe corners square). Dark background so the
+   rounded corners and the pre-load state show the surround color, not white. */
+.ufc-se-preview__frame {
+	position: relative;
+	width: 100%;
+	height: 100%;
 	overflow: hidden;
-	border: 0;
-	background: #fff;
+	border-radius: 12px;
+	box-shadow: rgba( 0, 0, 0, 0.08 ) 0 5px 15px 0;
+	background: #1e1e1e;
+	transform: translateZ( 0 );
 }
 
 /* Iframe is shifted left/up (inline styles from JS) so the clipped-away
-   region is the showcase's settings panel + admin-bar reservation. */
+   region is the showcase's settings panel + admin-bar reservation.
+   Transparent + opacity 0 until loaded, then faded in, so there's no white
+   flash / mid-paint before the variation colors arrive. */
 .ufc-se-iframe {
 	position: absolute;
 	border: 0;
-	background: #fff;
+	background: transparent;
+	opacity: 0;
+	transition: opacity 150ms linear;
+}
+.ufc-se-iframe.is-loaded {
+	opacity: 1;
 }

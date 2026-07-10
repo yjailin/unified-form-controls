@@ -67,13 +67,20 @@ add_action(
 			}
 		}
 
+		// Style variations (slug + title) so the preview can follow the
+		// variation selected in Browse styles — the SAME `?uf_variation=<slug>`
+		// mechanism the showcase/admin page already uses (see the
+		// `wp_theme_json_data_user` filter in showcase-settings-panel.php).
+		$variations = function_exists( 'ufc_showcase_get_variations' ) ? ufc_showcase_get_variations() : array();
+
 		wp_add_inline_script(
 			'ufc-site-editor-styles-panel',
 			'window.__UFC_SE=' . wp_json_encode(
 				array(
-					'previewUrl' => home_url( '/?uf_showcase=1&uf_embed=1' ),
+					'previewUrl' => home_url( '/?uf_showcase=1&uf_embed=1&uf_frame=1' ),
 					'colors'     => $colors,
 					'maxRadius'  => 27,
+					'variations' => $variations,
 				)
 			) . ';',
 			'before'
@@ -86,4 +93,31 @@ add_action(
 			file_exists( $css_path ) ? filemtime( $css_path ) : UNIFIED_FORM_CONTROLS_VERSION
 		);
 	}
+);
+
+/**
+ * Preview-only override for the showcase section headings.
+ *
+ * The showcase `<h2>` section labels (Text inputs, Inputs with controls, …)
+ * inherit a fixed color, so they go dark-on-dark under dark style variations.
+ * Point them at the theme text color the fields use, at 50% opacity, so they
+ * stay legible on any variation.
+ *
+ * Scoped to our Site Editor preview only (the iframe adds `uf_frame=1`) so the
+ * plain `?uf_showcase=1` page and the Appearance > Form controls admin iframe
+ * are left exactly as they were. Emitted on `wp_footer` (after uf-forms.css)
+ * so the later source order wins on the shared selector.
+ */
+add_action(
+	'wp_footer',
+	function () {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( ! isset( $_GET['uf_frame'] ) ) {
+			return;
+		}
+		echo '<style id="ufc-preview-frame-overrides">'
+			. '.uf-showcase h2{color:var(--wp--preset--color--contrast,currentColor);opacity:.5;}'
+			. '</style>';
+	},
+	100
 );

@@ -32,7 +32,6 @@
 	var ToggleGroupControl       = C.ToggleGroupControl       || C.__experimentalToggleGroupControl;
 	var ToggleGroupControlOption = C.ToggleGroupControlOption || C.__experimentalToggleGroupControlOption;
 	var UnitControl              = C.UnitControl              || C.__experimentalUnitControl;
-	var Button                   = C.Button;
 
 	// Defaults mirror the showcase seed defaults (showcase-page.php /
 	// showcase-settings-panel.php): outline / unfilled / 4px / inside.
@@ -52,12 +51,10 @@
 	/**
 	 * @param {Object}   props
 	 * @param {Function} props.onPreview  Called with { border, fill, label, radius, fillColor, corners } on mount + every change.
-	 * @param {boolean}  [props.showSave] Render the Update button (default true).
 	 * @param {number}   [props.maxRadius] Max corner radius in px (half the field height). Default 27.
 	 */
 	function FormControlFields( props ) {
 		var onPreview = props.onPreview || function () {};
-		var showSave  = props.showSave !== false;
 		var maxRadius = props.maxRadius || 27;
 
 		// Same entity model as the showcase panel: read the current global
@@ -79,20 +76,6 @@
 		var radius    = uf.radius    || DEFAULTS.radius;
 		var label     = uf.label     || DEFAULTS.label;
 		var fillColor = uf.fillColor || null;
-
-		var isDirty = useSelect( function ( select ) {
-			var core = select( 'core' );
-			return ! globalStylesId || ! core || ! core.hasEditsForEntityRecord
-				? false
-				: core.hasEditsForEntityRecord( 'root', 'globalStyles', globalStylesId );
-		}, [ globalStylesId ] );
-
-		var isSaving = useSelect( function ( select ) {
-			var core = select( 'core' );
-			return ! globalStylesId || ! core || ! core.isSavingEntityRecord
-				? false
-				: core.isSavingEntityRecord( 'root', 'globalStyles', globalStylesId );
-		}, [ globalStylesId ] );
 
 		function patch( next ) {
 			if ( ! setSettings ) {
@@ -119,14 +102,9 @@
 			} );
 		}, [ border, fill, label, radius, fillColor ] );
 
-		// Direct entity save — no multi-entity "Review changes" dialog.
-		function save() {
-			if ( ! globalStylesId ) {
-				return;
-			}
-			wp.data.dispatch( 'core' ).saveEditedEntityRecord( 'root', 'globalStyles', globalStylesId );
-		}
-
+		// No save button: edits flow through `patch()` → the global styles
+		// entity is marked dirty → the editor's native "Review changes" /
+		// Save handles persistence, exactly like the native Styles screens.
 		return el( 'div', { className: 'ufc-se-fields', style: { display: 'flex', flexDirection: 'column', gap: '16px' } },
 
 			el( ToggleGroupControl, {
@@ -195,16 +173,7 @@
 			},
 				el( ToggleGroupControlOption, { value: 'inside', label: 'Inside' } ),
 				el( ToggleGroupControlOption, { value: 'above',  label: 'Above'  } )
-			),
-
-			showSave && el( Button, {
-				variant: 'primary',
-				__next40pxDefaultSize: true,
-				style: { width: '100%', justifyContent: 'center' },
-				onClick: save,
-				disabled: ! isDirty || isSaving || ! globalStylesId,
-				isBusy: isSaving,
-			}, isSaving ? 'Saving…' : 'Update' )
+			)
 		);
 	}
 
