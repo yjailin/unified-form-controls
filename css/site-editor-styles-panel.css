@@ -87,7 +87,7 @@
 	position: fixed;
 	z-index: 999;
 	box-sizing: border-box;
-	padding: 28px;
+	padding: 0;
 	background: #1e1e1e;
 }
 

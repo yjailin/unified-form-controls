@@ -160,12 +160,14 @@
 		return document.querySelector( '.global-styles-ui-sidebar__navigator-provider' )
 			|| document.querySelector( '.edit-site-styles' );
 	}
-	// Anchor to the canvas CONTAINER (symmetric), not the editor-canvas iframe:
-	// that iframe sits flush-left (0 inset) while inset elsewhere, which made
-	// our frame's gap uneven (tight on the left). The container gives a
-	// symmetric base so the padding produces an even margin on all four sides.
+	// Anchor to the editor's OWN resizable canvas frame element. Its position
+	// (and the even/centered margin around it) is computed dynamically by the
+	// editor from window width + max-width, so by matching its exact rect our
+	// preview inherits the identical frame margin the native Styles views have
+	// — instead of us hand-setting padding that drifts at different widths.
 	function previewAnchor() {
-		return document.querySelector( '.edit-site-layout__canvas-container' );
+		return document.querySelector( '.edit-site-resizable-frame__inner-content' )
+			|| document.querySelector( '.edit-site-layout__canvas-container' );
 	}
 
 	function reposition() {
