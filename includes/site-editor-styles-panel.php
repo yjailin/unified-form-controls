@@ -96,17 +96,27 @@ add_action(
 );
 
 /**
- * Preview-only override for the showcase section headings.
+ * Preview-only override: make the showcase read like the native Style Book.
  *
- * The showcase `<h2>` section labels (Text inputs, Inputs with controls, …)
- * inherit a fixed color, so they go dark-on-dark under dark style variations.
- * Point them at the theme text color the fields use, at 50% opacity, so they
- * stay legible on any variation.
+ * Restyles the showcase `<h2>` section labels to match the Style Book
+ * example-title treatment, so the Form controls preview belongs to the same
+ * system as the Style Book (the view behind the eye icon in Styles). Values
+ * were read from the live Style Book's computed styles
+ * (.editor-style-book__example-title):
+ *   font-size 13px, weight 400, no uppercase, text-align left, line 1;
+ *   padding-top 8px; border-top 1px solid color-mix(currentColor 10%);
+ *   color color-mix(currentColor 60%).
+ * Side padding is left as-is: the showcase's existing centered inset already
+ * lines up with the Style Book's content column (~59px from the canvas edge).
+ * The Style Book bases those mixes on `currentColor`, which resolves to the
+ * theme text on its native canvas but stays dark inside the showcase — so we
+ * base the same 60%/10% mixes on the theme contrast token, which DOES adapt
+ * per variation (verified light + dark).
  *
  * Scoped to our Site Editor preview only (the iframe adds `uf_frame=1`) so the
  * plain `?uf_showcase=1` page and the Appearance > Form controls admin iframe
  * are left exactly as they were. Emitted on `wp_footer` (after uf-forms.css)
- * so the later source order wins on the shared selector.
+ * so the later source order wins on the shared selectors.
  */
 add_action(
 	'wp_footer',
@@ -115,9 +125,24 @@ add_action(
 		if ( ! isset( $_GET['uf_frame'] ) ) {
 			return;
 		}
-		echo '<style id="ufc-preview-frame-overrides">'
-			. '.uf-showcase h2{color:var(--wp--preset--color--contrast,currentColor);opacity:.5;}'
-			. '</style>';
+		$contrast = 'var(--wp--preset--color--contrast, currentColor)';
+		$css      = '
+			.uf-showcase h2 {
+				font-size: 13px;
+				font-weight: 400;
+				line-height: normal;
+				letter-spacing: normal;
+				text-transform: none;
+				text-align: left;
+				opacity: 1;
+				margin: 40px 0 16px;
+				padding-top: 8px;
+				border-top: 1px solid color-mix( in srgb, ' . $contrast . ' 10%, transparent );
+				color: color-mix( in srgb, ' . $contrast . ' 60%, transparent );
+			}
+			.uf-showcase section:first-of-type h2 { margin-top: 0; }
+		';
+		echo '<style id="ufc-preview-frame-overrides">' . $css . '</style>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	},
 	100
 );
