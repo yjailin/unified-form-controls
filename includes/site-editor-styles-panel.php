@@ -128,6 +128,7 @@ add_action(
 		$contrast = 'var(--wp--preset--color--contrast, currentColor)';
 		$css      = '
 			.uf-showcase h2 {
+				font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 				font-size: 13px;
 				font-weight: 400;
 				line-height: normal;
