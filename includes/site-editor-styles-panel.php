@@ -145,6 +145,10 @@ add_action(
 				border-top: 1px solid color-mix( in srgb, currentColor 10%, transparent );
 			}
 			.uf-showcase section:first-of-type h2 { margin-top: 0; }
+			/* Remove the strong group-end rule (uf-forms.css puts a 1px
+			   var(--uf-divider) border-top on every section); the faint h2
+			   separators above headings stay. */
+			.uf-showcase section { border-top: 0; }
 		';
 		echo '<style id="ufc-preview-frame-overrides">' . $css . '</style>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	},
