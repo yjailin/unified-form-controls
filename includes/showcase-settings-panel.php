@@ -19,6 +19,20 @@ function ufc_showcase_panel_is_active() {
 }
 
 /**
+ * Whether the editing sidebar (token panel + variation dropdown) should render.
+ *
+ * Only inside the Site Editor Styles preview iframe (?uf_showcase=1&uf_embed=1),
+ * which loads the showcase off-canvas and clips the sidebar away. The direct
+ * ?uf_showcase=1 catalog page shows the forms full-width with no sidebar — the
+ * token styling still applies via showcase-page.php's server-seeded data
+ * attributes and the (ungated) listener in site-editor-form-fields.php.
+ */
+function ufc_showcase_sidebar_is_active() {
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	return ufc_showcase_panel_is_active() && isset( $_GET['uf_embed'] );
+}
+
+/**
  * Return the list of style variations available in the active theme's
  * /styles/ directory. Each entry: [ 'slug' => '03-dusk', 'title' => 'Dusk' ].
  * Cached per-request because we read it from disk.
@@ -91,7 +105,7 @@ add_filter( 'wp_theme_json_data_user', function ( $theme_json ) {
  * Load wp-components on the showcase page.
  */
 add_action( 'wp_enqueue_scripts', function () {
-	if ( ! ufc_showcase_panel_is_active() ) {
+	if ( ! ufc_showcase_sidebar_is_active() ) {
 		return;
 	}
 	wp_enqueue_script( 'wp-element' );
@@ -130,7 +144,7 @@ add_action( 'wp_enqueue_scripts', function () {
  * so wp-components is already in the DOM when our render script executes.
  */
 add_action( 'wp_footer', function () {
-	if ( ! ufc_showcase_panel_is_active() ) {
+	if ( ! ufc_showcase_sidebar_is_active() ) {
 		return;
 	}
 	?>
