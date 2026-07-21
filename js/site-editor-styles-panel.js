@@ -93,8 +93,8 @@
 		return layout ? layout.closest( '.components-item-group' ) : null;
 	}
 
-	function injectItem() {
-		if ( document.getElementById( 'ufc-se-item' ) ) { return; }
+	function makeItem( id, label, onClick ) {
+		if ( document.getElementById( id ) ) { return; }
 		var group  = getItemGroup();
 		var layout = document.getElementById( '/layout' );
 		if ( ! group || ! layout ) { return; }
@@ -104,13 +104,13 @@
 		// it and swap the leading icon glyph.
 		var btn = document.createElement( 'button' );
 		btn.type      = 'button';
-		btn.id        = 'ufc-se-item';
+		btn.id        = id;
 		btn.className = layout.className;
 		btn.innerHTML = layout.innerHTML;
 
 		Array.prototype.forEach.call( btn.querySelectorAll( '*' ), function ( n ) {
 			if ( n.children.length === 0 && n.textContent.trim() === 'Layout' ) {
-				n.textContent = 'Form controls';
+				n.textContent = label;
 			}
 		} );
 
@@ -131,10 +131,28 @@
 
 		btn.addEventListener( 'click', function ( e ) {
 			e.preventDefault();
-			openPanel();
+			onClick();
 		} );
 
 		group.appendChild( btn );
+	}
+
+	function injectItem() {
+		makeItem( 'ufc-se-item', 'Form controls', function () { openPanel(); } );
+
+		// PROTOTYPE (side-by-side comparison): same drilldown chrome, but the
+		// body is built from the shared block-editor Global Styles panels
+		// (BorderPanel / ColorPanel) instead of our own controls. Only appears
+		// when the prototype module loaded.
+		if ( window.UFC && window.UFC.NativePanelsPrototype ) {
+			makeItem( 'ufc-se-item-proto', 'Form controls (native)', function () {
+				openPanel( {
+					title: 'Form controls (native)',
+					description: 'Prototype — built from the shared block-editor panels.',
+					Body: window.UFC.NativePanelsPrototype,
+				} );
+			} );
+		}
 	}
 
 	// The root Styles screen remounts when the user navigates in/out of a
@@ -211,7 +229,8 @@
 	//   ScreenHeader: Spacer paddingX={4} paddingY={3} > VStack spacing={2}
 	//                 > HStack spacing={2} > BackButton(size=small) + Heading(size=13)
 	//   ScreenBody:   Spacer padding={4}  (class global-styles-ui-screen-body)
-	function PanelContents() {
+	function PanelContents( props ) {
+		props = props || {};
 		var el      = wp.element.createElement;
 		var C       = wp.components;
 		var HStack  = C.__experimentalHStack;
@@ -230,18 +249,21 @@
 			el( VStack, { spacing: 2 },
 				el( HStack, { spacing: 2, alignment: 'center', justify: 'flex-start' },
 					el( Button, { icon: chevron, size: 'small', label: 'Back', onClick: closePanel } ),
-					el( Heading, { level: 2, size: 13, className: 'global-styles-ui-header' }, 'Form controls' )
+					el( Heading, { level: 2, size: 13, className: 'global-styles-ui-header' },
+						props.title || 'Form controls'
+					)
 				),
 				// One-line intro, like the native screens (same component +
 				// class as ScreenHeader's description).
 				el( Text, { className: 'global-styles-ui-header__description' },
-					'Consistent border, fill, and label styles for every form control on your site.'
+					props.description || 'Consistent border, fill, and label styles for every form control on your site.'
 				)
 			)
 		);
 
+		var Body = props.Body || window.UFC.FormControlFields;
 		var body = el( Spacer, { className: 'global-styles-ui-screen-body', padding: 4 },
-			el( window.UFC.FormControlFields, { onPreview: sendPreview, maxRadius: MAX_RADIUS } )
+			el( Body, { onPreview: sendPreview, maxRadius: MAX_RADIUS } )
 		);
 
 		return el( wp.element.Fragment, null, header, body );
@@ -266,7 +288,7 @@
 
 	// ---- open / close -------------------------------------------------------
 
-	function openPanel() {
+	function openPanel( opts ) {
 		if ( state.open ) { return; }
 		state.open = true;
 
@@ -336,7 +358,7 @@
 		window.addEventListener( 'resize', reposition );
 
 		// Render the native-style header + body + controls into the panel.
-		var comp = wp.element.createElement( PanelContents );
+		var comp = wp.element.createElement( PanelContents, opts || {} );
 		if ( wp.element.createRoot ) {
 			state.root = wp.element.createRoot( panel );
 			state.root.render( comp );

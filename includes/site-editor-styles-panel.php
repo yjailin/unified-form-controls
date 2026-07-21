@@ -47,10 +47,24 @@ add_action(
 			true
 		);
 
+		// PROTOTYPE (evaluation only): a second "Form controls (native)" screen
+		// built from the shared block-editor Global Styles panels. Reaches them
+		// via `unlock( wp.blockEditor.privateApis )`, which is a PRIVATE API —
+		// see the header of the JS file. Self-disables if the unlock fails, so
+		// the shipping panel is unaffected either way.
+		$proto_path = UNIFIED_FORM_CONTROLS_PATH . 'js/site-editor-native-panels-proto.js';
+		wp_enqueue_script(
+			'ufc-native-panels-proto',
+			UNIFIED_FORM_CONTROLS_URL . 'js/site-editor-native-panels-proto.js',
+			array_merge( $deps, array( 'wp-private-apis' ) ),
+			file_exists( $proto_path ) ? filemtime( $proto_path ) : UNIFIED_FORM_CONTROLS_VERSION,
+			true
+		);
+
 		wp_enqueue_script(
 			'ufc-site-editor-styles-panel',
 			UNIFIED_FORM_CONTROLS_URL . 'js/site-editor-styles-panel.js',
-			array_merge( $deps, array( 'ufc-form-control-fields' ) ),
+			array_merge( $deps, array( 'ufc-form-control-fields', 'ufc-native-panels-proto' ) ),
 			file_exists( $panel_path ) ? filemtime( $panel_path ) : UNIFIED_FORM_CONTROLS_VERSION,
 			true
 		);
