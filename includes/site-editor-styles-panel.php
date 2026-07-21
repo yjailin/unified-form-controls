@@ -61,10 +61,30 @@ add_action(
 			true
 		);
 
+		// PROPOSED design (evaluation only): a third screen grouping the
+		// controls by decision — Layout / Colors / Border & Shadow. Public
+		// @wordpress/components only, no private APIs.
+		$proposed_path = UNIFIED_FORM_CONTROLS_PATH . 'js/site-editor-proposed-panel.js';
+		wp_enqueue_script(
+			'ufc-proposed-panel',
+			UNIFIED_FORM_CONTROLS_URL . 'js/site-editor-proposed-panel.js',
+			$deps,
+			file_exists( $proposed_path ) ? filemtime( $proposed_path ) : UNIFIED_FORM_CONTROLS_VERSION,
+			true
+		);
+
+		$proposed_css = UNIFIED_FORM_CONTROLS_PATH . 'css/site-editor-proposed-panel.css';
+		wp_enqueue_style(
+			'ufc-proposed-panel',
+			UNIFIED_FORM_CONTROLS_URL . 'css/site-editor-proposed-panel.css',
+			array( 'wp-components' ),
+			file_exists( $proposed_css ) ? filemtime( $proposed_css ) : UNIFIED_FORM_CONTROLS_VERSION
+		);
+
 		wp_enqueue_script(
 			'ufc-site-editor-styles-panel',
 			UNIFIED_FORM_CONTROLS_URL . 'js/site-editor-styles-panel.js',
-			array_merge( $deps, array( 'ufc-form-control-fields', 'ufc-native-panels-proto' ) ),
+			array_merge( $deps, array( 'ufc-form-control-fields', 'ufc-native-panels-proto', 'ufc-proposed-panel' ) ),
 			file_exists( $panel_path ) ? filemtime( $panel_path ) : UNIFIED_FORM_CONTROLS_VERSION,
 			true
 		);

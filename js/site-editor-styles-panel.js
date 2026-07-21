@@ -153,6 +153,18 @@
 				} );
 			} );
 		}
+
+		// PROPOSED design (side-by-side comparison): same drilldown chrome,
+		// body grouped by decision — Layout / Colors / Border & Shadow.
+		if ( window.UFC && window.UFC.ProposedPanel ) {
+			makeItem( 'ufc-se-item-proposed', 'Form controls (proposed)', function () {
+				openPanel( {
+					title: 'Form controls (proposed)',
+					description: 'Consistent border, fill and label styles for every form control on your site.',
+					Body: window.UFC.ProposedPanel,
+				} );
+			} );
+		}
 	}
 
 	// The root Styles screen remounts when the user navigates in/out of a
