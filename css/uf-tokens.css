@@ -71,6 +71,11 @@
 	--uf-field-label: var(--wp--custom--field--label, currentColor);
 	--uf-field-placeholder: color-mix(in srgb, var(--uf-field-label) 50%, transparent);
 	--uf-field-border: var(--uf-field-text);
+	/* Stroke weight for field borders. Defaults to 1px, which is what every
+	   border-width in this stylesheet was hardcoded to before, so existing
+	   surfaces render unchanged. The hover/focus and error states double it
+	   via an inset box-shadow of the same width. */
+	--uf-field-border-width: var(--wp--custom--field--border-width, 1px);
 
 	/* Error color adapts to page brightness via CSS `light-dark()`.
 	   Themes can override either variant via theme.json > custom >
@@ -142,7 +147,7 @@
 :is(.wp-block-woocommerce-checkout, .wp-block-woocommerce-cart, .wc-block-mini-cart__drawer, .wp-block-post-comments-form, .wp-block-search, .wp-block-form, .wp-block-jetpack-contact-form, .comment-form, .woocommerce-MyAccount-content, .uf-showcase, .uf-checkout) .wc-blocks-components-select:hover,
 :is(.wp-block-woocommerce-checkout, .wp-block-woocommerce-cart, .wc-block-mini-cart__drawer, .wp-block-post-comments-form, .wp-block-search, .wp-block-form, .wp-block-jetpack-contact-form, .comment-form, .woocommerce-MyAccount-content, .uf-showcase, .uf-checkout) .wc-block-components-text-input:focus-within,
 :is(.wp-block-woocommerce-checkout, .wp-block-woocommerce-cart, .wc-block-mini-cart__drawer, .wp-block-post-comments-form, .wp-block-search, .wp-block-form, .wp-block-jetpack-contact-form, .comment-form, .woocommerce-MyAccount-content, .uf-showcase, .uf-checkout) .wc-blocks-components-select:focus-within {
-	box-shadow: inset 0 0 0 1px var(--uf-field-border) !important;
+	box-shadow: inset 0 0 0 var(--uf-field-border-width) var(--uf-field-border) !important;
 	outline: none !important;
 }
 :is(.wp-block-woocommerce-checkout, .wp-block-woocommerce-cart, .wc-block-mini-cart__drawer, .wp-block-post-comments-form, .wp-block-search, .wp-block-form, .wp-block-jetpack-contact-form, .comment-form, .woocommerce-MyAccount-content, .uf-showcase, .uf-checkout) input::placeholder,

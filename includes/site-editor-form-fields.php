@@ -114,6 +114,23 @@ add_action(
 					root.style.setProperty( '--uf-field-inset-extra', extra + 'px' );
 					document.body.style.setProperty( '--uf-field-inset-extra', extra + 'px' );
 				}
+				// Border stroke weight and colour. Both optional: callers that
+				// omit these keys leave the tokens untouched, so the saved
+				// four-setting payload behaves exactly as before.
+				if ( d.borderWidth !== undefined ) {
+					d.borderWidth
+						? ( root.style.setProperty( '--uf-field-border-width', d.borderWidth ),
+							document.body.style.setProperty( '--uf-field-border-width', d.borderWidth ) )
+						: ( root.style.removeProperty( '--uf-field-border-width' ),
+							document.body.style.removeProperty( '--uf-field-border-width' ) );
+				}
+				if ( d.borderColor !== undefined ) {
+					d.borderColor
+						? ( root.style.setProperty( '--uf-field-border', d.borderColor ),
+							document.body.style.setProperty( '--uf-field-border', d.borderColor ) )
+						: ( root.style.removeProperty( '--uf-field-border' ),
+							document.body.style.removeProperty( '--uf-field-border' ) );
+				}
 				if ( d.fillColor !== undefined ) {
 					d.fillColor
 						? root.style.setProperty( '--wp--custom--field--fill', d.fillColor )

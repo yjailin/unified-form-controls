@@ -196,19 +196,27 @@
 		var fillCss  = toCssColor( bg );
 		var hasFill  = !! bg;
 
+		// Width and colour live on the uniform border, or on the bottom side
+		// once the preset has split it (Underline).
+		var edge        = ( style.border && ( style.border.bottom || style.border ) ) || {};
+		var borderWidth = edge.width || null;
+		var borderColor = toCssColor( edge.color );
+
 		// Drive the existing live-preview bridge (same postMessage contract).
 		useEffect( function () {
 			onPreview( {
-				border:    preset,
-				fill:      hasFill ? 'filled' : 'unfilled',
-				label:     label,
-				radius:    radiusPx + 'px',
-				fillColor: fillCss,
-				corners:   radiusPx === 0
+				border:      preset,
+				fill:        hasFill ? 'filled' : 'unfilled',
+				label:       label,
+				radius:      radiusPx + 'px',
+				fillColor:   fillCss,
+				borderWidth: borderWidth,
+				borderColor: borderColor,
+				corners:     radiusPx === 0
 					? 'sharp'
 					: ( radiusPx >= maxRadius * 0.99 ? 'pill' : 'rounded' ),
 			} );
-		}, [ preset, hasFill, label, radiusPx, fillCss ] );
+		}, [ preset, hasFill, label, radiusPx, fillCss, borderWidth, borderColor ] );
 
 		return el( VStack, { spacing: 4 },
 
