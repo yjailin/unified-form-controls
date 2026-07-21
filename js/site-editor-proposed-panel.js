@@ -51,6 +51,13 @@
 	var ColorIndicator           = C.ColorIndicator;
 	var Button                   = C.Button;
 	var BaseControl              = C.BaseControl;
+	// Verified against the WordPress Design System MCP: ItemGroup/Item is the
+	// canonical grouped-row container (isBordered / isSeparated / isRounded /
+	// size), and InputControlPrefixWrapper is the documented way to pad an
+	// input prefix. Both were previously hand-rolled in CSS here.
+	var ItemGroup                = C.__experimentalItemGroup;
+	var Item                     = C.__experimentalItem;
+	var PrefixWrapper            = C.__experimentalInputControlPrefixWrapper;
 
 	// Fields never want a heavy stroke. Unlike BorderControl — which hardcodes
 	// min 0 / max 100 and exposes no way to change them — a composed control
@@ -65,6 +72,18 @@
 	function px( value ) {
 		var n = parseFloat( value );
 		return isNaN( n ) ? 0 : n;
+	}
+
+	// Colour state is { value, slug }. ColorPalette's onChange third argument is
+	// the palette slug, which lets us emit the theme's preset custom property
+	// instead of a baked hex — so the field follows a style-variation change
+	// the way the rest of the site does. `selectedSlug` is also what keeps the
+	// right swatch marked when two palette entries share a colour value.
+	function cssFor( color ) {
+		if ( ! color || ! color.value ) { return null; }
+		return color.slug
+			? 'var(--wp--preset--color--' + color.slug + ')'
+			: color.value;
 	}
 
 	/** Small caps control label, matching the ToggleGroupControl labels. */
@@ -82,61 +101,75 @@
 	 * way the native colour rows are: a Dropdown whose toggle is an indicator
 	 * plus a label, and whose content is a ColorPalette.
 	 */
+	function Palette( props ) {
+		return el( ColorPalette, {
+			colors: themeColors(),
+			value: props.color && props.color.value,
+			selectedSlug: ( props.color && props.color.slug ) || undefined,
+			onChange: function ( newColor, index, slug ) {
+				props.onChange( { value: newColor || null, slug: slug || null } );
+			},
+			clearable: true,
+			__experimentalIsRenderedInSidebar: true,
+			'aria-label': props.label,
+		} );
+	}
+
 	function ColorRow( props ) {
-		return el( 'div', { className: 'ufc-proposed__row' },
+		return el( Dropdown, {
+			className: 'ufc-proposed__row-dropdown',
+			popoverProps: { placement: 'left-start', offset: 36 },
+			renderToggle: function ( toggle ) {
+				return el( Item, {
+					onClick: toggle.onToggle,
+					'aria-expanded': toggle.isOpen,
+				},
+					el( HStack, { spacing: 3, justify: 'flex-start' },
+						el( ColorIndicator, {
+							colorValue: ( props.color && props.color.value ) || 'transparent',
+						} ),
+						el( 'span', null, props.label )
+					)
+				);
+			},
+			renderContent: function () {
+				return el( Palette, {
+					label: props.label,
+					color: props.color,
+					onChange: props.onChange,
+				} );
+			},
+		} );
+	}
+
+	/**
+	 * Colour swatch used as the prefix inside the Border width input.
+	 * InputControlPrefixWrapper supplies the size-aware padding — previously
+	 * this was a hand-written margin.
+	 */
+	function SwatchPrefix( props ) {
+		return el( PrefixWrapper, { variant: 'icon' },
 			el( Dropdown, {
-				className: 'ufc-proposed__row-dropdown',
 				popoverProps: { placement: 'left-start', offset: 36 },
 				renderToggle: function ( toggle ) {
 					return el( Button, {
-						className: 'ufc-proposed__row-toggle',
+						className: 'ufc-proposed__swatch-toggle',
 						onClick: toggle.onToggle,
 						'aria-expanded': toggle.isOpen,
-					},
-						el( ColorIndicator, { colorValue: props.value || 'transparent' } ),
-						el( 'span', { className: 'ufc-proposed__row-label' }, props.label )
-					);
+						label: 'Border color',
+					}, el( ColorIndicator, {
+						colorValue: ( props.color && props.color.value ) || 'transparent',
+					} ) );
 				},
 				renderContent: function () {
-					return el( 'div', { className: 'ufc-proposed__palette' },
-						el( ColorPalette, {
-							colors: themeColors(),
-							value: props.value,
-							onChange: props.onChange,
-							clearable: true,
-							__experimentalIsRenderedInSidebar: true,
-						} )
-					);
+					return el( Palette, {
+						label: 'Border color',
+						color: props.color,
+						onChange: props.onChange,
+					} );
 				},
 			} )
 		);
-	}
-
-	/** Colour swatch used as the prefix inside the Border width input. */
-	function SwatchPrefix( props ) {
-		return el( Dropdown, {
-			className: 'ufc-proposed__swatch',
-			popoverProps: { placement: 'left-start', offset: 36 },
-			renderToggle: function ( toggle ) {
-				return el( Button, {
-					className: 'ufc-proposed__swatch-toggle',
-					onClick: toggle.onToggle,
-					'aria-expanded': toggle.isOpen,
-					label: 'Border color',
-				}, el( ColorIndicator, { colorValue: props.value || 'transparent' } ) );
-			},
-			renderContent: function () {
-				return el( 'div', { className: 'ufc-proposed__palette' },
-					el( ColorPalette, {
-						colors: themeColors(),
-						value: props.value,
-						onChange: props.onChange,
-						clearable: true,
-						__experimentalIsRenderedInSidebar: true,
-					} )
-				);
-			},
-		} );
 	}
 
 	function ShadowIcon() {
@@ -165,9 +198,10 @@
 		var a = useState( 'inside' );   var label       = a[ 0 ]; var setLabel       = a[ 1 ];
 		var b = useState( 'filled' );   var fill        = b[ 0 ]; var setFill        = b[ 1 ];
 		var c = useState( 'outline' );  var borderStyle = c[ 0 ]; var setBorderStyle = c[ 1 ];
-		var d = useState( null );       var textColor   = d[ 0 ]; var setTextColor   = d[ 1 ];
-		var e = useState( null );       var bgColor     = e[ 0 ]; var setBgColor     = e[ 1 ];
-		var f = useState( null );       var borderColor = f[ 0 ]; var setBorderColor = f[ 1 ];
+		var EMPTY = { value: null, slug: null };
+		var d = useState( EMPTY );      var textColor   = d[ 0 ]; var setTextColor   = d[ 1 ];
+		var e = useState( EMPTY );      var bgColor     = e[ 0 ]; var setBgColor     = e[ 1 ];
+		var f = useState( EMPTY );      var borderColor = f[ 0 ]; var setBorderColor = f[ 1 ];
 		var g = useState( '1px' );      var borderWidth = g[ 0 ]; var setBorderWidth = g[ 1 ];
 		var h = useState( '0px' );      var radius      = h[ 0 ]; var setRadius      = h[ 1 ];
 
@@ -182,6 +216,10 @@
 			setRadius( n + 'px' );
 		}
 
+		var textCss   = cssFor( textColor );
+		var bgCss     = cssFor( bgColor );
+		var borderCss = cssFor( borderColor );
+
 		// Same postMessage contract as the other two screens.
 		useEffect( function () {
 			var n = px( radius );
@@ -191,12 +229,12 @@
 				label:       label,
 				radius:      n + 'px',
 				corners:     n === 0 ? 'sharp' : ( n >= maxRadius * 0.99 ? 'pill' : 'rounded' ),
-				fillColor:   'filled' === fill ? bgColor : null,
-				textColor:   textColor,
-				borderColor: borderColor,
+				fillColor:   'filled' === fill ? bgCss : null,
+				textColor:   textCss,
+				borderColor: borderCss,
 				borderWidth: borderWidth,
 			} );
-		}, [ label, fill, borderStyle, textColor, bgColor, borderColor, borderWidth, radius ] );
+		}, [ label, fill, borderStyle, textCss, bgCss, borderCss, borderWidth, radius ] );
 
 		return el( VStack, { spacing: 6, className: 'ufc-proposed' },
 
@@ -245,9 +283,9 @@
 			// ---- Colors ----------------------------------------------------
 			el( VStack, { spacing: 3 },
 				Section( 'Colors' ),
-				el( 'div', { className: 'ufc-proposed__group' },
-					el( ColorRow, { label: 'Text',       value: textColor, onChange: setTextColor } ),
-					el( ColorRow, { label: 'Background', value: bgColor,   onChange: setBgColor } )
+				el( ItemGroup, { isBordered: true, isSeparated: true },
+					el( ColorRow, { label: 'Text',       color: textColor, onChange: setTextColor } ),
+					el( ColorRow, { label: 'Background', color: bgColor,   onChange: setBgColor } )
 				)
 			),
 
@@ -268,7 +306,7 @@
 							max: MAX_BORDER_WIDTH,
 							__nextHasNoMarginBottom: true,
 							__next40pxDefaultSize: true,
-							prefix: el( SwatchPrefix, { value: borderColor, onChange: setBorderColor } ),
+							prefix: el( SwatchPrefix, { color: borderColor, onChange: setBorderColor } ),
 							onChange: commitWidth,
 						} ),
 						el( RangeControl, {
@@ -324,15 +362,11 @@
 				// but it is inert until that is resolved.
 				el( 'div', null,
 					Label( 'Shadow' ),
-					el( 'div', { className: 'ufc-proposed__group' },
-						el( 'div', { className: 'ufc-proposed__row' },
-							el( Button, {
-								className: 'ufc-proposed__row-toggle',
-								'aria-disabled': 'true',
-								onClick: function () {},
-							},
+					el( ItemGroup, { isBordered: true, isSeparated: true },
+						el( Item, null,
+							el( HStack, { spacing: 3, justify: 'flex-start' },
 								el( ShadowIcon ),
-								el( 'span', { className: 'ufc-proposed__row-label' }, 'Drop shadow' )
+								el( 'span', null, 'Drop shadow' )
 							)
 						)
 					)
