@@ -17,12 +17,14 @@
  *  - It drives the live preview through the same postMessage bridge as the
  *    other two screens, so the canvas responds identically.
  *
- * NOT WIRED (no pipeline support yet — see the notes on each control):
+ * NOT WIRED (no pipeline support yet):
  *  - Label position "Middle": no `[data-label="middle"]` rule exists in
  *    uf-forms.css, so it currently renders as Inside.
- *  - Drop shadow: there is no field shadow token, and the fields already use
- *    box-shadow for the hover/focus ring, so this needs a design decision
- *    before it can be wired.
+ *
+ * Shadow IS wired, with one caveat: fields use box-shadow for their hover/focus
+ * ring, and those rules carry `!important`, so the drop shadow is replaced while
+ * a field is hovered or focused. Resolving that cleanly would mean composing the
+ * two shadows in every interactive state — flagged, not done.
  *
  * Exposed as `window.UFC.ProposedPanel`.
  *
@@ -59,14 +61,28 @@
 	var Item                     = C.__experimentalItem;
 	var PrefixWrapper            = C.__experimentalInputControlPrefixWrapper;
 
-	// Fields never want a heavy stroke. Unlike BorderControl — which hardcodes
-	// min 0 / max 100 and exposes no way to change them — a composed control
-	// takes the range as ordinary props.
-	var MIN_BORDER_WIDTH = 1;
+	// Fields never want a heavy stroke, but 0 is a valid choice: this design has
+	// no "None" border style, so a zero width is how you make a field borderless.
+	// Unlike BorderControl — which hardcodes min 0 / max 100 and exposes no way
+	// to change them — a composed control takes the range as ordinary props.
+	var MIN_BORDER_WIDTH = 0;
 	var MAX_BORDER_WIDTH = 4;
 
 	function themeColors() {
 		return ( window.__UFC_SE && window.__UFC_SE.colors ) || [];
+	}
+
+	function shadowPresets() {
+		return ( window.__UFC_SE && window.__UFC_SE.shadows ) || [];
+	}
+
+	function shadowCssFor( slug ) {
+		return slug ? 'var(--wp--preset--shadow--' + slug + ')' : null;
+	}
+
+	function shadowName( slug ) {
+		var match = shadowPresets().filter( function ( p ) { return p.slug === slug; } )[ 0 ];
+		return match ? match.name : 'Drop shadow';
 	}
 
 	function px( value ) {
@@ -109,6 +125,9 @@
 			onChange: function ( newColor, index, slug ) {
 				props.onChange( { value: newColor || null, slug: slug || null } );
 			},
+			// The palette's own Clear button — the same reset affordance the
+			// native colour popovers ship. Clearing sets value+slug to null,
+			// which returns the toggle to the unset (slashed) swatch below.
 			clearable: true,
 			__experimentalIsRenderedInSidebar: true,
 			'aria-label': props.label,
@@ -125,8 +144,11 @@
 					'aria-expanded': toggle.isOpen,
 				},
 					el( HStack, { spacing: 3, justify: 'flex-start' },
+						// Pass undefined (not 'transparent') when unset: ColorIndicator
+						// then renders its built-in "no colour" diagonal slash, which
+						// is exactly what the native panels show for an unset value.
 						el( ColorIndicator, {
-							colorValue: ( props.color && props.color.value ) || 'transparent',
+							colorValue: ( props.color && props.color.value ) || undefined,
 						} ),
 						el( 'span', null, props.label )
 					)
@@ -158,7 +180,7 @@
 						'aria-expanded': toggle.isOpen,
 						label: 'Border color',
 					}, el( ColorIndicator, {
-						colorValue: ( props.color && props.color.value ) || 'transparent',
+						colorValue: ( props.color && props.color.value ) || undefined,
 					} ) );
 				},
 				renderContent: function () {
@@ -168,6 +190,32 @@
 						onChange: props.onChange,
 					} );
 				},
+			} )
+		);
+	}
+
+	/**
+	 * A grid of the theme's shadow presets plus a "None" cell, mirroring the
+	 * native shadow picker (a swatch grid rather than a colour palette). Each
+	 * swatch previews the preset by wearing it as its own box-shadow.
+	 */
+	function ShadowPicker( props ) {
+		var cell = function ( key, label, shadowCss, active, onClick ) {
+			return el( Button, {
+				key: key,
+				className: 'ufc-proposed__shadow-swatch' + ( active ? ' is-active' : '' ),
+				onClick: onClick,
+				label: label,
+				showTooltip: true,
+				style: shadowCss ? { boxShadow: shadowCss } : undefined,
+			}, shadowCss ? null : el( ShadowIcon ) );
+		};
+		return el( 'div', { className: 'ufc-proposed__shadow-grid' },
+			cell( 'none', 'None', null, ! props.value, function () { props.onChange( null ); } ),
+			shadowPresets().map( function ( p ) {
+				return cell( p.slug, p.name, p.shadow, props.value === p.slug, function () {
+					props.onChange( p.slug );
+				} );
 			} )
 		);
 	}
@@ -204,6 +252,7 @@
 		var f = useState( EMPTY );      var borderColor = f[ 0 ]; var setBorderColor = f[ 1 ];
 		var g = useState( '1px' );      var borderWidth = g[ 0 ]; var setBorderWidth = g[ 1 ];
 		var h = useState( '0px' );      var radius      = h[ 0 ]; var setRadius      = h[ 1 ];
+		var i = useState( null );       var shadow      = i[ 0 ]; var setShadow      = i[ 1 ];
 
 		function commitWidth( value ) {
 			var n = px( value );
@@ -233,8 +282,9 @@
 				textColor:   textCss,
 				borderColor: borderCss,
 				borderWidth: borderWidth,
+				shadow:      shadowCssFor( shadow ),
 			} );
-		}, [ label, fill, borderStyle, textCss, bgCss, borderCss, borderWidth, radius ] );
+		}, [ label, fill, borderStyle, textCss, bgCss, borderCss, borderWidth, radius, shadow ] );
 
 		return el( VStack, { spacing: 6, className: 'ufc-proposed' },
 
@@ -356,19 +406,32 @@
 					)
 				),
 
-				// Shadow is in the design but has nothing to drive: there is no
-				// field shadow token, and fields already use box-shadow for the
-				// hover/focus ring. Rendered so the screen matches the design,
-				// but it is inert until that is resolved.
+				// Shadow row opens a picker of the theme's shadow presets. The
+				// choice drives the preview through a new `shadow` bridge key
+				// (see site-editor-form-fields.php), which sets --uf-field-shadow.
 				el( 'div', null,
 					Label( 'Shadow' ),
 					el( ItemGroup, { isBordered: true, isSeparated: true },
-						el( Item, null,
-							el( HStack, { spacing: 3, justify: 'flex-start' },
-								el( ShadowIcon ),
-								el( 'span', null, 'Drop shadow' )
-							)
-						)
+						el( Dropdown, {
+							className: 'ufc-proposed__row-dropdown',
+							popoverProps: { placement: 'left-start', offset: 36 },
+							renderToggle: function ( toggle ) {
+								return el( Item, {
+									onClick: toggle.onToggle,
+									'aria-expanded': toggle.isOpen,
+								},
+									el( HStack, { spacing: 3, justify: 'flex-start' },
+										el( ShadowIcon ),
+										el( 'span', null, shadowName( shadow ) )
+									)
+								);
+							},
+							renderContent: function () {
+								return el( 'div', { className: 'ufc-proposed__palette' },
+									el( ShadowPicker, { value: shadow, onChange: setShadow } )
+								);
+							},
+						} )
 					)
 				)
 			)

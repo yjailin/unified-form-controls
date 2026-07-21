@@ -138,6 +138,13 @@ add_action(
 						: ( root.style.removeProperty( '--wp--custom--field--text' ),
 							document.body.style.removeProperty( '--wp--custom--field--text' ) );
 				}
+				if ( d.shadow !== undefined ) {
+					d.shadow
+						? ( root.style.setProperty( '--uf-field-shadow', d.shadow ),
+							document.body.style.setProperty( '--uf-field-shadow', d.shadow ) )
+						: ( root.style.removeProperty( '--uf-field-shadow' ),
+							document.body.style.removeProperty( '--uf-field-shadow' ) );
+				}
 				if ( d.fillColor !== undefined ) {
 					d.fillColor
 						? root.style.setProperty( '--wp--custom--field--fill', d.fillColor )

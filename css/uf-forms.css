@@ -602,6 +602,11 @@
 			font: inherit;
 			border-style: solid;
 			border-width: var(--uf-field-border-width);
+			/* Optional drop shadow, driven by the Site Editor "proposed" screen.
+			   Defaults to none, so every other surface is unchanged. Note: the
+			   hover/focus/error rules below set an inset ring with !important,
+			   which replaces this while a field is interacted with. */
+			box-shadow: var(--uf-field-shadow, none);
 		}
 		.uf-field textarea { min-height: 96px; resize: vertical; }
 		.uf-field input[disabled],

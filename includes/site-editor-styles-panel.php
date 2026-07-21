@@ -101,6 +101,19 @@ add_action(
 			}
 		}
 
+		// Theme shadow presets (name + slug + value) for the proposed screen's
+		// shadow picker. Localized for the same reason colours are: the panel
+		// renders in a detached React root where the block-editor store's
+		// settings are not reliably populated.
+		$shadows       = array();
+		$shadow_preset = wp_get_global_settings( array( 'shadow', 'presets' ) );
+		foreach ( array( 'theme', 'custom', 'default' ) as $source ) {
+			if ( ! empty( $shadow_preset[ $source ] ) ) {
+				$shadows = $shadow_preset[ $source ];
+				break;
+			}
+		}
+
 		// Style variations (slug + title) so the preview can follow the
 		// variation selected in Browse styles — the SAME `?uf_variation=<slug>`
 		// mechanism the showcase/admin page already uses (see the
@@ -113,6 +126,7 @@ add_action(
 				array(
 					'previewUrl' => home_url( '/?uf_showcase=1&uf_embed=1&uf_frame=1' ),
 					'colors'     => $colors,
+					'shadows'    => $shadows,
 					'maxRadius'  => 27,
 					'variations' => $variations,
 				)
