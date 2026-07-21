@@ -71,11 +71,16 @@
 	// SPLIT border with only the bottom side visible. BorderPanel/BorderBoxControl
 	// already read and write this shape (it branches on hasSplitBorders()).
 
+	// Build the standard border value for a preset, carrying over whatever width
+	// and colour the user has already chosen (which may live on the uniform
+	// border or on the bottom side of a split one).
 	function presetToBorder( preset, current ) {
 		var radius = current && current.radius;
-		var color  = ( current && ( current.color || ( current.bottom && current.bottom.color ) ) ) || undefined;
+		var src    = ( current && ( current.bottom || current ) ) || {};
+		var color  = src.color;
+		var width  = src.width && ( parseFloat( src.width ) || 0 ) > 0 ? src.width : '1px';
 		var side   = function ( on ) {
-			return { style: on ? 'solid' : 'none', width: on ? '1px' : '0px', color: color };
+			return { style: on ? 'solid' : 'none', width: on ? width : '0px', color: color };
 		};
 
 		if ( preset === 'underline' ) {
@@ -88,26 +93,30 @@
 		if ( preset === 'none' ) {
 			return { style: 'none', width: '0px', color: color, radius: radius };
 		}
-		return { style: 'solid', width: '1px', color: color, radius: radius };
+		return { style: 'solid', width: width, color: color, radius: radius };
 	}
 
-	function borderToPreset( border ) {
-		if ( ! border ) { return 'outline'; }
-		var w = function ( s ) { return s && s.width ? ( parseFloat( s.width ) || 0 ) : 0; };
-		var isSplit = border.top || border.right || border.bottom || border.left;
-		if ( isSplit ) {
-			if ( w( border.bottom ) > 0 && ! w( border.top ) && ! w( border.right ) && ! w( border.left ) ) {
-				return 'underline';
-			}
-			if ( ! w( border.bottom ) && ! w( border.top ) && ! w( border.right ) && ! w( border.left ) ) {
-				return 'none';
-			}
-			return 'outline';
+	// BorderRadiusControl writes EITHER a string ("4px") or, once the per-corner
+	// control is engaged, an object of four corners. The preview bridge only
+	// carries a single radius, so collapse the object — largest corner wins.
+	function radiusToPx( radius ) {
+		if ( ! radius ) { return 0; }
+		if ( typeof radius === 'object' ) {
+			return [ 'topLeft', 'topRight', 'bottomLeft', 'bottomRight' ].reduce(
+				function ( max, k ) { return Math.max( max, parseFloat( radius[ k ] ) || 0 ); },
+				0
+			);
 		}
-		if ( border.style === 'none' || ( parseFloat( border.width || '0' ) || 0 ) === 0 ) {
-			return 'none';
-		}
-		return 'outline';
+		return parseFloat( radius ) || 0;
+	}
+
+	// Colour values come back in Gutenberg's internal preset encoding
+	// ("var:preset|color|base-2"), which is not valid CSS. Translate to the
+	// custom property the theme actually emits.
+	function toCssColor( value ) {
+		if ( ! value ) { return null; }
+		var match = /^var:preset\|color\|(.+)$/.exec( value );
+		return match ? 'var(--wp--preset--color--' + match[ 1 ] + ')' : value;
 	}
 
 	function NativePanelsPrototype( props ) {
@@ -118,6 +127,14 @@
 		var st       = useState( { border: { style: 'solid', width: '1px', radius: '4px' } } );
 		var style    = st[ 0 ];
 		var setStyle = st[ 1 ];
+
+		// The preset is held explicitly rather than derived from the border value.
+		// BorderBoxControl flattens a split border back to a uniform one as soon
+		// as you touch width or colour, so deriving the preset made editing the
+		// width silently turn Underline into Outline.
+		var ps        = useState( 'outline' );
+		var preset    = ps[ 0 ];
+		var setPreset = ps[ 1 ];
 
 		// Label position has no standard Global Styles control — kept custom.
 		var lb       = useState( 'inside' );
@@ -174,23 +191,24 @@
 			};
 		}, [ rawSettings ] );
 
-		var preset  = borderToPreset( style.border );
-		var radius  = ( style.border && style.border.radius ) || '0px';
-		var bg      = style.color && style.color.background;
-		var hasFill = !! bg;
+		var radiusPx = radiusToPx( style.border && style.border.radius );
+		var bg       = style.color && style.color.background;
+		var fillCss  = toCssColor( bg );
+		var hasFill  = !! bg;
 
 		// Drive the existing live-preview bridge (same postMessage contract).
 		useEffect( function () {
-			var n = parseFloat( radius ) || 0;
 			onPreview( {
 				border:    preset,
 				fill:      hasFill ? 'filled' : 'unfilled',
 				label:     label,
-				radius:    n + 'px',
-				fillColor: bg || null,
-				corners:   n === 0 ? 'sharp' : ( n >= maxRadius * 0.99 ? 'pill' : 'rounded' ),
+				radius:    radiusPx + 'px',
+				fillColor: fillCss,
+				corners:   radiusPx === 0
+					? 'sharp'
+					: ( radiusPx >= maxRadius * 0.99 ? 'pill' : 'rounded' ),
 			} );
-		}, [ preset, hasFill, label, radius, bg ] );
+		}, [ preset, hasFill, label, radiusPx, fillCss ] );
 
 		return el( VStack, { spacing: 4 },
 
@@ -203,6 +221,7 @@
 				__next40pxDefaultSize: true,
 				help: 'Presets write standard border values — Underline is a bottom-only split border.',
 				onChange: function ( v ) {
+					setPreset( v );
 					setStyle( Object.assign( {}, style, { border: presetToBorder( v, style.border ) } ) );
 				},
 			},
@@ -214,7 +233,19 @@
 			// ---- the shared block-editor panels -----------------------------
 			el( BorderPanel, {
 				value: style,
-				onChange: setStyle,
+				// Re-assert the preset's shape after every edit. BorderBoxControl
+				// collapses a split border to a uniform one the moment you change
+				// width or colour, which would silently demote Underline to
+				// Outline; the preset stays the owner of the border SHAPE, while
+				// the panel owns width, colour and radius.
+				onChange: function ( next ) {
+					if ( 'outline' !== preset ) {
+						next = Object.assign( {}, next, {
+							border: presetToBorder( preset, next.border ),
+						} );
+					}
+					setStyle( next );
+				},
 				settings: settings,
 				panelId: 'uf-native-border',
 			} ),
