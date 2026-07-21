@@ -5,11 +5,17 @@
  * grouped by the DECISION they express (Layout / Colors / Border & Shadow)
  * rather than by the CSS property they happen to write.
  *
- * Built from @wordpress/components primitives only — no private APIs, nothing
- * unlocked. Where the design calls for a row shape the public components do
- * not ship (the Colors rows, the swatch-prefixed border input), it is composed
- * from Dropdown + ColorPalette + ColorIndicator + UnitControl, which is the
+ * Built from public @wordpress/components primitives, with ONE exception: the
+ * shadow control. Where the design calls for a row shape the public components
+ * do not ship (the Colors rows, the swatch-prefixed border input), it is
+ * composed from Dropdown + ColorPalette + ColorIndicator + UnitControl, the
  * same composition the native panels use internally.
+ *
+ * The exception is Shadow. There is NO public shadow-presets control, so rather
+ * than reinvent one this screen renders the block editor's own `ShadowPopover`
+ * (the "Drop shadow" picker under Styles > Blocks > Button) by way of the
+ * Global Styles `BorderPanel`, reached through a PRIVATE API. See the
+ * BorderPanel unlock note below.
  *
  * Scope notes, matching the other prototype screen:
  *  - State is LOCAL (useState) and deliberately not persisted, so this screen
@@ -61,6 +67,27 @@
 	var Item                     = C.__experimentalItem;
 	var PrefixWrapper            = C.__experimentalInputControlPrefixWrapper;
 
+	// The shadow picker is NOT a public component. In the block editor it is the
+	// internal `ShadowPopover` (class `block-editor-global-styles__shadow-dropdown`),
+	// rendered only by the Global Styles `BorderPanel` — the same "Border & Shadow"
+	// panel you see under Styles > Blocks > Button. It is not exported standalone,
+	// so the only way to use the SAME component (rather than reimplement it) is to
+	// render BorderPanel constrained to just its shadow row. That reaches it
+	// through `unlock( wp.blockEditor.privateApis )`, a PRIVATE API — the same
+	// caveat that applies to the "Form controls (native)" screen. This is a real
+	// finding: there is no public shadow-presets control to compose from.
+	var BorderPanel = null;
+	try {
+		var consent = 'I acknowledge private features are not for use in themes or plugins and doing so will break in the next version of WordPress.';
+		var api = wp.privateApis.__dangerousOptInToUnstableAPIsOnlyForCoreModules(
+			consent,
+			'@wordpress/block-editor'
+		);
+		BorderPanel = api.unlock( wp.blockEditor.privateApis ).BorderPanel;
+	} catch ( e ) {
+		BorderPanel = null;
+	}
+
 	// Fields never want a heavy stroke, but 0 is a valid choice: this design has
 	// no "None" border style, so a zero width is how you make a field borderless.
 	// Unlike BorderControl — which hardcodes min 0 / max 100 and exposes no way
@@ -76,13 +103,23 @@
 		return ( window.__UFC_SE && window.__UFC_SE.shadows ) || [];
 	}
 
-	function shadowCssFor( slug ) {
-		return slug ? 'var(--wp--preset--shadow--' + slug + ')' : null;
+	// Settings that make BorderPanel render ONLY its shadow row: border colour /
+	// style / width / radius are all off, shadow presets are on. `defaultPresets`
+	// keeps the theme presets as the palette.
+	function shadowOnlySettings() {
+		return {
+			border: { color: false, style: false, width: false, radius: false },
+			shadow: { presets: { default: shadowPresets() }, defaultPresets: true },
+		};
 	}
 
-	function shadowName( slug ) {
-		var match = shadowPresets().filter( function ( p ) { return p.slug === slug; } )[ 0 ];
-		return match ? match.name : 'Drop shadow';
+	// BorderPanel stores the chosen shadow as Gutenberg's preset encoding
+	// ("var:preset|shadow|deep"), which is not valid CSS. Translate to the custom
+	// property the theme actually emits, so the preview follows style variations.
+	function shadowStyleToCss( shadowVal ) {
+		if ( ! shadowVal ) { return null; }
+		var match = /^var:preset\|shadow\|(.+)$/.exec( shadowVal );
+		return match ? 'var(--wp--preset--shadow--' + match[ 1 ] + ')' : shadowVal;
 	}
 
 	function px( value ) {
@@ -195,45 +232,6 @@
 	}
 
 	/**
-	 * A grid of the theme's shadow presets plus a "None" cell, mirroring the
-	 * native shadow picker (a swatch grid rather than a colour palette). Each
-	 * swatch previews the preset by wearing it as its own box-shadow.
-	 */
-	function ShadowPicker( props ) {
-		var cell = function ( key, label, shadowCss, active, onClick ) {
-			return el( Button, {
-				key: key,
-				className: 'ufc-proposed__shadow-swatch' + ( active ? ' is-active' : '' ),
-				onClick: onClick,
-				label: label,
-				showTooltip: true,
-				style: shadowCss ? { boxShadow: shadowCss } : undefined,
-			}, shadowCss ? null : el( ShadowIcon ) );
-		};
-		return el( 'div', { className: 'ufc-proposed__shadow-grid' },
-			cell( 'none', 'None', null, ! props.value, function () { props.onChange( null ); } ),
-			shadowPresets().map( function ( p ) {
-				return cell( p.slug, p.name, p.shadow, props.value === p.slug, function () {
-					props.onChange( p.slug );
-				} );
-			} )
-		);
-	}
-
-	function ShadowIcon() {
-		return el( 'svg', {
-			className: 'ufc-proposed__shadow-icon',
-			width: 24, height: 24, viewBox: '0 0 24 24', 'aria-hidden': 'true', focusable: 'false',
-		},
-			el( 'circle', { cx: 12, cy: 12, r: 4, fill: 'none', stroke: 'currentColor', strokeWidth: 1.5 } ),
-			el( 'path', {
-				d: 'M12 3.5v2M12 18.5v2M3.5 12h2M18.5 12h2M6 6l1.4 1.4M16.6 16.6L18 18M18 6l-1.4 1.4M7.4 16.6L6 18',
-				stroke: 'currentColor', strokeWidth: 1.5, strokeLinecap: 'round',
-			} )
-		);
-	}
-
-	/**
 	 * @param {Object}   props
 	 * @param {Function} props.onPreview   Called with the bridge payload on mount + every change.
 	 * @param {number}   [props.maxRadius] Max corner radius in px. Default 27.
@@ -252,7 +250,9 @@
 		var f = useState( EMPTY );      var borderColor = f[ 0 ]; var setBorderColor = f[ 1 ];
 		var g = useState( '1px' );      var borderWidth = g[ 0 ]; var setBorderWidth = g[ 1 ];
 		var h = useState( '0px' );      var radius      = h[ 0 ]; var setRadius      = h[ 1 ];
-		var i = useState( null );       var shadow      = i[ 0 ]; var setShadow      = i[ 1 ];
+		// Shadow is a theme.json-shaped style object, because that is what
+		// BorderPanel reads and writes (value.shadow = "var:preset|shadow|<slug>").
+		var i = useState( {} );         var shadowStyle = i[ 0 ]; var setShadowStyle = i[ 1 ];
 
 		function commitWidth( value ) {
 			var n = px( value );
@@ -282,9 +282,9 @@
 				textColor:   textCss,
 				borderColor: borderCss,
 				borderWidth: borderWidth,
-				shadow:      shadowCssFor( shadow ),
+				shadow:      shadowStyleToCss( shadowStyle.shadow ),
 			} );
-		}, [ label, fill, borderStyle, textCss, bgCss, borderCss, borderWidth, radius, shadow ] );
+		}, [ label, fill, borderStyle, textCss, bgCss, borderCss, borderWidth, radius, shadowStyle.shadow ] );
 
 		return el( VStack, { spacing: 6, className: 'ufc-proposed' },
 
@@ -406,34 +406,18 @@
 					)
 				),
 
-				// Shadow row opens a picker of the theme's shadow presets. The
-				// choice drives the preview through a new `shadow` bridge key
-				// (see site-editor-form-fields.php), which sets --uf-field-shadow.
-				el( 'div', null,
-					Label( 'Shadow' ),
-					el( ItemGroup, { isBordered: true, isSeparated: true },
-						el( Dropdown, {
-							className: 'ufc-proposed__row-dropdown',
-							popoverProps: { placement: 'left-start', offset: 36 },
-							renderToggle: function ( toggle ) {
-								return el( Item, {
-									onClick: toggle.onToggle,
-									'aria-expanded': toggle.isOpen,
-								},
-									el( HStack, { spacing: 3, justify: 'flex-start' },
-										el( ShadowIcon ),
-										el( 'span', null, shadowName( shadow ) )
-									)
-								);
-							},
-							renderContent: function () {
-								return el( 'div', { className: 'ufc-proposed__palette' },
-									el( ShadowPicker, { value: shadow, onChange: setShadow } )
-								);
-							},
-						} )
-					)
-				)
+				// Shadow: the block editor's OWN shadow control, not a bespoke
+				// one. BorderPanel is constrained (via shadowOnlySettings) to
+				// render just its Shadow row — the real `ShadowPopover`, the same
+				// one under Styles > Blocks > Button. Its choice drives the
+				// preview through the `shadow` bridge key, which sets
+				// --uf-field-shadow (see site-editor-form-fields.php).
+				BorderPanel ? el( BorderPanel, {
+					value: shadowStyle,
+					onChange: setShadowStyle,
+					settings: shadowOnlySettings(),
+					panelId: 'uf-proposed-shadow',
+				} ) : null
 			)
 		);
 	}

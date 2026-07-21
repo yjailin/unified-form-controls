@@ -1,10 +1,6 @@
 /**
- * Styles for the PROPOSED "Form controls" screen only.
- *
- * In-panel rules are scoped under `.ufc-proposed`. The exception is the popover
- * content (shadow grid, palette wrapper): Dropdown portals its popover to the
- * document root, outside `.ufc-proposed`, so those rules are unscoped and rely
- * on the class names being unique to this screen.
+ * Styles for the PROPOSED "Form controls" screen only, scoped under
+ * `.ufc-proposed`.
  *
  * Deliberately thin. The grouped rows and the input prefix are now rendered by
  * ItemGroup/Item and InputControlPrefixWrapper, which own their own borders,
@@ -44,11 +40,6 @@
 	width: 100%;
 }
 
-.ufc-proposed .ufc-proposed__shadow-icon {
-	flex: 0 0 auto;
-	fill: none;
-}
-
 /* Swatch sits inside InputControlPrefixWrapper, which supplies the left
    padding. The button must match the ColorIndicator's own 20px size and centre
    it, otherwise the indicator (20px) overflows a smaller button and rides ~3px
@@ -66,44 +57,6 @@
 /* Small breathing room so the number isn't glued to the swatch's right edge. */
 .ufc-proposed .ufc-proposed__width .components-input-control__prefix {
 	margin-right: var( --wpds-dimension-gap-sm );
-}
-
-/* Shadow picker: a grid of preset swatches, each wearing its own box-shadow,
-   mirroring the native shadow picker rather than a colour palette.
-
-   NOT scoped under `.ufc-proposed`: Dropdown portals its popover to the
-   document root, so these rules would never match a `.ufc-proposed`
-   descendant. The class names are unique to this screen, so an unscoped rule
-   is safe. (Same reason the palette wrapper below is unscoped.) */
-.ufc-proposed__palette {
-	min-width: 220px;
-	padding: var( --wpds-dimension-padding-xs );
-}
-
-.ufc-proposed__shadow-grid {
-	display: grid;
-	grid-template-columns: repeat( 3, 1fr );
-	gap: var( --wpds-dimension-gap-md );
-	min-width: 220px;
-	padding: var( --wpds-dimension-padding-xs );
-}
-
-.ufc-proposed__shadow-swatch.components-button {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	height: 48px;
-	width: 100%;
-	padding: 0;
-	background: var( --wpds-color-background-surface-neutral );
-	border: 1px solid var( --wpds-color-stroke-surface-neutral-weak );
-	border-radius: var( --wpds-border-radius-sm );
-	color: var( --wpds-color-foreground-content-neutral-weak );
-}
-
-.ufc-proposed__shadow-swatch.is-active {
-	outline: 1.5px solid var( --wpds-color-stroke-focus );
-	outline-offset: 1px;
 }
 
 /* Input keeps a fixed width so the slider takes the remaining space, matching

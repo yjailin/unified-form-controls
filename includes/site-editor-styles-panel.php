@@ -63,12 +63,14 @@ add_action(
 
 		// PROPOSED design (evaluation only): a third screen grouping the
 		// controls by decision — Layout / Colors / Border & Shadow. Public
-		// @wordpress/components only, no private APIs.
+		// @wordpress/components, except the shadow control, which renders the
+		// block editor's own ShadowPopover via BorderPanel (private API) — hence
+		// the wp-private-apis dependency.
 		$proposed_path = UNIFIED_FORM_CONTROLS_PATH . 'js/site-editor-proposed-panel.js';
 		wp_enqueue_script(
 			'ufc-proposed-panel',
 			UNIFIED_FORM_CONTROLS_URL . 'js/site-editor-proposed-panel.js',
-			$deps,
+			array_merge( $deps, array( 'wp-private-apis' ) ),
 			file_exists( $proposed_path ) ? filemtime( $proposed_path ) : UNIFIED_FORM_CONTROLS_VERSION,
 			true
 		);
