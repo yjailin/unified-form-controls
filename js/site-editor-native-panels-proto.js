@@ -96,6 +96,41 @@
 		return { style: 'solid', width: width, color: color, radius: radius };
 	}
 
+	// Fields never want a heavy stroke, so the width is held to 1–4px.
+	//
+	// ⚠️ This CANNOT be expressed through the standard control. BorderControl
+	// hardcodes `min: 0` on its width input and `min: 0, max: 100` on its
+	// slider, and neither BorderControl nor BorderBoxControl accepts a min/max
+	// prop. So the range is enforced on the VALUE instead: type 20 and the
+	// control snaps back to 4. The slider still spans 0–100, which means the
+	// usable range occupies its leftmost 4% — a UI limitation we cannot fix
+	// without forking the component.
+	var MIN_BORDER_WIDTH = 1;
+	var MAX_BORDER_WIDTH = 4;
+
+	function clampWidth( width ) {
+		var n = parseFloat( width );
+		// Leave 0 and empty alone: "no border" is expressed by the None preset,
+		// not by typing zero into the width field.
+		if ( isNaN( n ) || n <= 0 ) { return width; }
+		return Math.min( MAX_BORDER_WIDTH, Math.max( MIN_BORDER_WIDTH, n ) ) + 'px';
+	}
+
+	// Applies to the uniform border and to each side of a split one.
+	function clampBorderWidths( border ) {
+		if ( ! border ) { return border; }
+		var next = Object.assign( {}, border );
+		if ( next.width ) { next.width = clampWidth( next.width ); }
+		[ 'top', 'right', 'bottom', 'left' ].forEach( function ( sideName ) {
+			if ( next[ sideName ] && next[ sideName ].width ) {
+				next[ sideName ] = Object.assign( {}, next[ sideName ], {
+					width: clampWidth( next[ sideName ].width ),
+				} );
+			}
+		} );
+		return next;
+	}
+
 	// BorderRadiusControl writes EITHER a string ("4px") or, once the per-corner
 	// control is engaged, an object of four corners. The preview bridge only
 	// carries a single radius, so collapse the object — largest corner wins.
@@ -127,6 +162,15 @@
 		var st       = useState( { border: { style: 'solid', width: '1px', radius: '4px' } } );
 		var style    = st[ 0 ];
 		var setStyle = st[ 1 ];
+
+		// Bumped whenever a clamp actually changed what the user typed, to force
+		// BorderPanel to remount. UnitControl keeps its own draft string, so
+		// after typing 20 it goes on displaying "20" even though the value it
+		// emitted was replaced with 4px — remounting is the only way to make the
+		// field show the value that is really in effect.
+		var cn           = useState( 0 );
+		var clampNonce   = cn[ 0 ];
+		var setClampNonce = cn[ 1 ];
 
 		// The preset is held explicitly rather than derived from the border value.
 		// BorderBoxControl flattens a split border back to a uniform one as soon
@@ -240,6 +284,7 @@
 
 			// ---- the shared block-editor panels -----------------------------
 			el( BorderPanel, {
+				key: 'uf-native-border-' + clampNonce,
 				value: style,
 				// Re-assert the preset's shape after every edit. BorderBoxControl
 				// collapses a split border to a uniform one the moment you change
@@ -247,12 +292,15 @@
 				// Outline; the preset stays the owner of the border SHAPE, while
 				// the panel owns width, colour and radius.
 				onChange: function ( next ) {
+					var border  = clampBorderWidths( next.border );
+					var clamped = JSON.stringify( border ) !== JSON.stringify( next.border );
 					if ( 'outline' !== preset ) {
-						next = Object.assign( {}, next, {
-							border: presetToBorder( preset, next.border ),
-						} );
+						border = presetToBorder( preset, border );
 					}
-					setStyle( next );
+					setStyle( Object.assign( {}, next, { border: border } ) );
+					if ( clamped ) {
+						setClampNonce( function ( n ) { return n + 1; } );
+					}
 				},
 				settings: settings,
 				panelId: 'uf-native-border',
