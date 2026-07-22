@@ -1625,6 +1625,31 @@
 			left: calc(var(--_uf-pad-x) + var(--uf-field-inset-extra, 0px) - 0.3em) !important;
 		}
 
+		/* Middle + Underline: there is no top border to notch, so the label
+		   must NOT lift onto it. Dropping the -50% component of the transform
+		   moves the label's centre off the (absent) border and back onto its
+		   shrunk-top row (spanning 0..label-height), which sits it directly
+		   above the value — closing the oversized gap to match Above+Underline.
+		   The value's top padding already reserves exactly that row. */
+		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"][data-border="underline"] .uf-field--float:has(select) > label,
+		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"][data-border="underline"] .uf-field--float:has(textarea) > label,
+		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"][data-border="underline"] .uf-field--float input:focus ~ label,
+		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"][data-border="underline"] .uf-field--float input:not(:placeholder-shown) ~ label {
+			transform: translateY(calc(-1 * var(--_uf-shrunk-top))) !important;
+		}
+
+		/* Middle + Underline + Unfilled: the value sits flush left (its
+		   padding-left is 0 in this combo), so align the label's left edge to
+		   it — same as Above+Underline. The notch padding is irrelevant with no
+		   border to notch. */
+		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"][data-border="underline"][data-fill="unfilled"] .uf-field--float:has(select) > label,
+		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"][data-border="underline"][data-fill="unfilled"] .uf-field--float:has(textarea) > label,
+		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"][data-border="underline"][data-fill="unfilled"] .uf-field--float input:focus ~ label,
+		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"][data-border="underline"][data-fill="unfilled"] .uf-field--float input:not(:placeholder-shown) ~ label {
+			left: 0 !important;
+			padding-left: 0 !important;
+		}
+
 		/* Break the top border: mask a window out of the field's top edge
 		   where the floated label sits. `subtract` removes the second (window)
 		   layer from the first (full) layer, so that rectangle stops painting
