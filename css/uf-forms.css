@@ -600,13 +600,17 @@
 			box-sizing: border-box;
 			padding: 12px 14px;
 			font: inherit;
-			border-style: solid;
-			border-width: var(--uf-field-border-width);
-			/* Optional drop shadow, driven by the Site Editor "proposed" screen.
-			   Defaults to none, so every other surface is unchanged. Note: the
-			   hover/focus/error rules below set an inset ring with !important,
-			   which replaces this while a field is interacted with. */
-			box-shadow: var(--uf-field-shadow, none);
+			/* The border is rendered as an INSET box-shadow ring, not a real
+			   `border`. A real border is laid out — with box-sizing: border-box
+			   a wider border eats the content box (value text shifts inward) and
+			   with auto height it grows the box; box-shadow is painted, not laid
+			   out, so the bounding box, height and text position stay fixed at
+			   any width. --_uf-field-ring is the ring; it is overridden per
+			   border variant (underline / none) and for the error state below,
+			   and composed here with the optional drop shadow. */
+			border: 0;
+			--_uf-field-ring: inset 0 0 0 var(--uf-field-border-width) var(--uf-field-border);
+			box-shadow: var(--_uf-field-ring), var(--uf-field-shadow, 0 0 transparent);
 		}
 		.uf-field textarea { min-height: 96px; resize: vertical; }
 		.uf-field input[disabled],
@@ -624,7 +628,8 @@
 		.uf-showcase .uf-field.uf-has-error textarea,
 		.uf-showcase input[aria-invalid="true"]:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="hidden"]) {
 			color: var(--uf-field-error) !important;
-			border-color: var(--uf-field-error) !important;
+			/* Re-tint the ring (see the base rule) to the error colour. */
+			--_uf-field-ring: inset 0 0 0 var(--uf-field-border-width) var(--uf-field-error) !important;
 		}
 		.uf-field.uf-has-error > label {
 			color: var(--uf-field-error) !important;
@@ -637,14 +642,14 @@
 		.uf-showcase .uf-field.uf-has-error input:focus:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
 		.uf-showcase .uf-field.uf-has-error select:focus,
 		.uf-showcase .uf-field.uf-has-error textarea:focus {
-			box-shadow: inset 0 0 0 var(--uf-field-border-width) var(--uf-field-error) !important;
+			box-shadow: inset 0 0 0 calc(var(--uf-field-border-width) * 2) var(--uf-field-error), var(--uf-field-shadow, 0 0 transparent) !important;
 		}
 		/* Showcase-only: force a focus-looking state for the "Focused" demo
 		   without relying on autofocus (which scrolls the page on load). */
 		.uf-field.uf-is-focused input,
 		.uf-field.uf-is-focused select,
 		.uf-field.uf-is-focused textarea {
-			box-shadow: inset 0 0 0 var(--uf-field-border-width) var(--uf-field-border) !important;
+			box-shadow: inset 0 0 0 calc(var(--uf-field-border-width) * 2) var(--uf-field-border), var(--uf-field-shadow, 0 0 transparent) !important;
 			outline: none !important;
 		}
 
@@ -726,9 +731,15 @@
 		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] .uf-field--float .wc-block-components-text-input,
 		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] .uf-field--float .wc-blocks-components-select,
 		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] .uf-field--float .wc-blocks-components-select__container {
+			/* WC-native fields still draw a real border, so keep zeroing the
+			   three sides for them. Our .uf-field inputs draw no real border
+			   (see the base rule) — for those, re-point the ring to the bottom
+			   edge only. Setting --_uf-field-ring on a WC field is a no-op (it
+			   has no box-shadow referencing it). */
 			border-top-color: transparent !important;
 			border-left-color: transparent !important;
 			border-right-color: transparent !important;
+			--_uf-field-ring: inset 0 calc(-1 * var(--uf-field-border-width)) 0 0 var(--uf-field-border) !important;
 		}
 		/* Unfilled underline: no surface to curve → square. Filled
 		   underline: the fill surface follows --uf-field-radius on all
@@ -750,6 +761,8 @@
 		:is(.uf-showcase, .uf-checkout, body)[data-border="none"] .uf-field--float .wc-blocks-components-select,
 		:is(.uf-showcase, .uf-checkout, body)[data-border="none"] .uf-field--float .wc-blocks-components-select__container {
 			border-color: transparent !important;
+			/* No ring for our .uf-field inputs (no-op on WC fields). */
+			--_uf-field-ring: 0 0 transparent !important;
 		}
 		:is(.uf-showcase, .uf-checkout, body)[data-border="none"] :is(.uf-stepper, .wc-block-cart-items .wc-block-components-quantity-selector, .wc-block-mini-cart-items .wc-block-components-quantity-selector, form.cart .wc-block-components-quantity-selector) {
 			border-color: transparent !important;
@@ -1026,7 +1039,9 @@
 		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] .uf-field--float select:focus,
 		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] .uf-field--float textarea:hover,
 		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] .uf-field--float textarea:focus {
-			box-shadow: inset 0 -1px 0 0 var(--uf-field-border) !important;
+			/* Bottom-only ring, doubled on hover/focus to match the outline
+			   beef-up, and tracking the border width (was a hardcoded 1px). */
+			box-shadow: inset 0 calc(var(--uf-field-border-width) * -2) 0 0 var(--uf-field-border), var(--uf-field-shadow, 0 0 transparent) !important;
 		}
 
 		/* Underline + Unfilled: no visible side edges → side padding becomes
@@ -1461,6 +1476,16 @@
 		.uf-field--float textarea {
 			background: transparent !important;
 			box-shadow: none !important;
+		}
+		/* ...but our OWN fields draw their border via that box-shadow ring (see
+		   the base rule). The reset above targets `.uf-field--float input` to
+		   stop WC's nested inner input double-painting; it also catches ours.
+		   Re-assert the ring for DIRECT-child fields only — WC's native input /
+		   select sits nested deeper, so `> input` leaves it on the reset. */
+		.uf-field--float > input,
+		.uf-field--float > select,
+		.uf-field--float > textarea {
+			box-shadow: var(--_uf-field-ring), var(--uf-field-shadow, 0 0 transparent) !important;
 		}
 		/* WC wraps its native <select> in a surplus outer div with its
 		   own class (`.wc-blocks-components-select`) — neutralize it so

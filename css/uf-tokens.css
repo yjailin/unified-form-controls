@@ -147,7 +147,11 @@
 :is(.wp-block-woocommerce-checkout, .wp-block-woocommerce-cart, .wc-block-mini-cart__drawer, .wp-block-post-comments-form, .wp-block-search, .wp-block-form, .wp-block-jetpack-contact-form, .comment-form, .woocommerce-MyAccount-content, .uf-showcase, .uf-checkout) .wc-blocks-components-select:hover,
 :is(.wp-block-woocommerce-checkout, .wp-block-woocommerce-cart, .wc-block-mini-cart__drawer, .wp-block-post-comments-form, .wp-block-search, .wp-block-form, .wp-block-jetpack-contact-form, .comment-form, .woocommerce-MyAccount-content, .uf-showcase, .uf-checkout) .wc-block-components-text-input:focus-within,
 :is(.wp-block-woocommerce-checkout, .wp-block-woocommerce-cart, .wc-block-mini-cart__drawer, .wp-block-post-comments-form, .wp-block-search, .wp-block-form, .wp-block-jetpack-contact-form, .comment-form, .woocommerce-MyAccount-content, .uf-showcase, .uf-checkout) .wc-blocks-components-select:focus-within {
-	box-shadow: inset 0 0 0 var(--uf-field-border-width) var(--uf-field-border) !important;
+	/* The resting border is now an inset box-shadow ring (see uf-forms.css), so
+	   there is no longer a real border under this ring to add to. Double the
+	   ring on hover/focus to keep the "beef up" feedback, and keep the optional
+	   drop shadow composed in (it used to be dropped during interaction). */
+	box-shadow: inset 0 0 0 calc(var(--uf-field-border-width) * 2) var(--uf-field-border), var(--uf-field-shadow, 0 0 transparent) !important;
 	outline: none !important;
 }
 :is(.wp-block-woocommerce-checkout, .wp-block-woocommerce-cart, .wc-block-mini-cart__drawer, .wp-block-post-comments-form, .wp-block-search, .wp-block-form, .wp-block-jetpack-contact-form, .comment-form, .woocommerce-MyAccount-content, .uf-showcase, .uf-checkout) input::placeholder,
