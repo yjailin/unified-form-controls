@@ -1548,7 +1548,15 @@
 			font-size: calc(var(--uf-field-label-font-size) * 0.9) !important;
 			opacity: 1 !important;
 		}
-		/* Keep the disabled look legible even with a floating label. */
+		/* Dim the label of a disabled field so it fades with the rest of the
+		   field. `!important` + the :is()/:has() specificity (0,3,2) are needed to
+		   beat the Above-mode label rule above, which pins opacity:1 !important
+		   (0,3,1) and otherwise leaves the disabled label at full strength. */
+		:is(.uf-showcase, .uf-checkout, body) .uf-field--float:has(input:disabled) > label,
+		:is(.uf-showcase, .uf-checkout, body) .uf-field--float:has(select:disabled) > label,
+		:is(.uf-showcase, .uf-checkout, body) .uf-field--float:has(textarea:disabled) > label {
+			opacity: .5 !important;
+		}
 		.uf-field--float input:disabled ~ label,
 		.uf-field--float select:disabled ~ label,
 		.uf-field--float textarea:disabled ~ label {
@@ -1711,6 +1719,11 @@
 			gap: 0.8em;
 			padding: 0.3em 0;
 			cursor: pointer;
+			/* Choice labels follow the field TEXT colour (was the inherited body
+			   text) so every option — including the optional and disabled/
+			   unavailable ones — reads in the field text colour; the disabled
+			   row is still distinguished by its reduced opacity below. */
+			color: var(--uf-field-text);
 			/* Label text matches the field input font-size — radio/checkbox
 			   choices are primary content (the answer to a question), not
 			   secondary metadata, so they get the body-text weight rather
@@ -1912,7 +1925,7 @@
 		   already-padded label — the tile size and layout stay put. */
 		.uf-toggle-group__option:has(input:checked) {
 			background-color: var(--wp--preset--color--base);
-			box-shadow: inset 0 0 0 var(--uf-field-border-width) var(--uf-field-text);
+			box-shadow: inset 0 0 0 var(--uf-field-border-width) var(--uf-field-border);
 		}
 		.uf-toggle-group__option:has(input:checked) .uf-toggle-group__header,
 		.uf-toggle-group__option:has(input:checked) .uf-toggle-group__sublabel {

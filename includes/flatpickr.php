@@ -59,6 +59,9 @@ function ufc_enqueue_flatpickr() {
 			   for contrast. */
 			--_cal-text: var(--wp--custom--field--text, currentColor);
 			--_cal-bg: var(--wp--custom--field--fill, var(--wp--preset--color--base));
+			/* Border colour (popover edge + day-hover outline) follows the field
+			   BORDER colour, falling back to the text colour when unset. */
+			--_cal-border: var(--uf-field-border, var(--_cal-text));
 			background: var(--_cal-bg) !important;
 			color: var(--_cal-text) !important;
 			font-family: inherit !important;
@@ -70,7 +73,7 @@ function ufc_enqueue_flatpickr() {
 			   pill radius instead. */
 			border-radius: min(var(--uf-field-radius, 4px), calc(var(--uf-field-height, 55px) / 2)) !important;
 			box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08) !important;
-			border: 1px solid var(--_cal-text) !important;
+			border: 1px solid var(--_cal-border) !important;
 			/* Symmetric 12px padding on all four sides — same horizontal
 			   spacing as before; top now matches bottom so the time-only
 			   popover and the day grid don't sit flush against the top
@@ -181,7 +184,7 @@ function ufc_enqueue_flatpickr() {
 			/* `outline` (not `border`) so rightmost-column hover can't be
 			   clipped by the calendar's own right border. Outlines render
 			   on top of the element without affecting its box. */
-			outline: 1px solid var(--_cal-text) !important;
+			outline: 1px solid var(--_cal-border) !important;
 			outline-offset: -1px !important;
 		}
 		/* Disabled / prev-month / next-month days: no hover affordance —
@@ -242,7 +245,7 @@ function ufc_enqueue_flatpickr() {
 		   from `currentColor` (the active text color) so it tracks any
 		   color scheme without needing a separate token. */
 		.flatpickr-day.inRange {
-			background: color-mix(in srgb, currentColor 12%, transparent) !important;
+			background: color-mix(in srgb, currentColor 50%, transparent) !important;
 			border-color: transparent !important;
 			border-radius: 0 !important;
 			box-shadow: none !important;
