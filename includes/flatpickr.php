@@ -49,14 +49,17 @@ function ufc_enqueue_flatpickr() {
 	// colors, and radii without hardcoded values.
 	$css = <<<CSS
 		.flatpickr-calendar {
-			background: var(--wp--preset--color--base) !important;
 			/* The popover is portaled to <body>, outside the field scope, so map
-			   the field colours here from the vars the bridge sets on <body>.
-			   Every "black" thing in the calendar (numbers, arrows, borders, day
-			   hover, selected day) then follows the field TEXT colour; the
-			   selected-day number uses the field BACKGROUND colour for contrast. */
+			   the field colours here from the vars the bridge sets on <body>. The
+			   popover surface follows the field BACKGROUND colour so the picker
+			   reads as a continuation of its field (base-colour fallback when no
+			   background colour is set — same white card as before). Every "black"
+			   thing (numbers, arrows, borders, day hover, selected day) follows the
+			   field TEXT colour; the selected-day number uses the background colour
+			   for contrast. */
 			--_cal-text: var(--wp--custom--field--text, currentColor);
 			--_cal-bg: var(--wp--custom--field--fill, var(--wp--preset--color--base));
+			background: var(--_cal-bg) !important;
 			color: var(--_cal-text) !important;
 			font-family: inherit !important;
 			/* Follow the showcase's corners variant (sharp / rounded / pill)
@@ -273,10 +276,10 @@ function ufc_enqueue_flatpickr() {
 			border-top: 0 !important;
 		}
 		/* ONE hover target per cell — no nested hover backgrounds.
-		   - Hover bg uses the same `--uf-field-fill` token the form
-		     fields use on hover (~7% text-color alpha — softer than
-		     `--uf-divider`), so time-cell hover feels identical to
-		     field hover in the rest of the storefront.
+		   - Hover bg is the popover surface (--_cal-bg) with ~12% of the text
+		     colour mixed in, so it stays clearly visible now that the surface
+		     itself IS the field background colour (a plain --uf-field-fill hover
+		     would blend into the identically-coloured surface and disappear).
 		   - Hour/minute cell: only the outer `.numInputWrapper` gets the
 		     bg; input + stepper spans inside stay transparent so the cell
 		     shows a single clean background.
@@ -285,7 +288,7 @@ function ufc_enqueue_flatpickr() {
 		.flatpickr-time .numInputWrapper:hover,
 		.flatpickr-time .flatpickr-am-pm:hover,
 		.flatpickr-time .flatpickr-am-pm:focus {
-			background: var(--uf-field-fill, color-mix(in oklab, currentColor 7%, transparent 93%)) !important;
+			background: color-mix(in oklab, var(--_cal-text) 12%, var(--_cal-bg)) !important;
 		}
 		.flatpickr-time input:hover,
 		.flatpickr-time input:focus,

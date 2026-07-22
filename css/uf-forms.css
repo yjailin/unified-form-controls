@@ -1695,7 +1695,11 @@
 		   only the few truly optional ones annotated). */
 		.uf-field--optional > label::after {
 			content: " (optional)";
-			opacity: .6;
+			/* Full opacity (was .6): a translucent suffix drops contrast against
+			   the field/page background and can fail WCAG, so keep it at the label
+			   colour's full strength. It still reads as secondary via the
+			   parentheses and its position after the label. */
+			opacity: 1;
 			font-weight: inherit;
 		}
 		.uf-field:has(:disabled) .uf-helper {
