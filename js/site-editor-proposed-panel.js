@@ -51,7 +51,6 @@
 	var ToggleGroupControlOption = C.ToggleGroupControlOption || C.__experimentalToggleGroupControlOption;
 	var UnitControl              = C.UnitControl              || C.__experimentalUnitControl;
 	var RangeControl             = C.RangeControl;
-	var Heading                  = C.__experimentalHeading;
 	var VStack                   = C.__experimentalVStack;
 	var HStack                   = C.__experimentalHStack;
 	var Dropdown                 = C.Dropdown;
@@ -60,13 +59,18 @@
 	var Button                   = C.Button;
 	var BaseControl              = C.BaseControl;
 	var Disabled                 = C.Disabled;
-	// Verified against the WordPress Design System MCP: ItemGroup/Item is the
-	// canonical grouped-row container (isBordered / isSeparated / isRounded /
-	// size), and InputControlPrefixWrapper is the documented way to pad an
-	// input prefix. Both were previously hand-rolled in CSS here.
-	var ItemGroup                = C.__experimentalItemGroup;
+	// Item is the color-row toggle (a full-width button row); it sits inside a
+	// ToolsPanelItem now rather than an ItemGroup. InputControlPrefixWrapper is
+	// the documented way to pad the border-width input's swatch prefix. Both
+	// verified against the WordPress Design System MCP.
 	var Item                     = C.__experimentalItem;
 	var PrefixWrapper            = C.__experimentalInputControlPrefixWrapper;
+	// ToolsPanel / ToolsPanelItem give each group the native three-dot menu with
+	// per-control reset and "Reset all" — the same panel the block editor's own
+	// Color / Border panels use. We reuse that built-in reset instead of building
+	// a menu.
+	var ToolsPanel               = C.__experimentalToolsPanel;
+	var ToolsPanelItem           = C.__experimentalToolsPanelItem;
 
 	// The shadow picker is NOT a public component. In the block editor it is the
 	// internal `ShadowPopover` (class `block-editor-global-styles__shadow-dropdown`),
@@ -145,9 +149,12 @@
 		return el( BaseControl.VisualLabel, { className: 'ufc-proposed__label' }, text );
 	}
 
-	/** Group heading — "Layout", "Colors", "Border & Shadow". */
-	function Section( title ) {
-		return el( Heading, { level: 3, className: 'ufc-proposed__heading' }, title );
+	/** Group divider — a hairline between the Layout toggles, Colors and Fields.
+	    A plain bordered element (styled with a --wpds border token) so its line
+	    and spacing are fully ours, with no double border from a component that
+	    draws its own rule. */
+	function Rule() {
+		return el( 'div', { className: 'ufc-proposed__divider', 'aria-hidden': true } );
 	}
 
 	/**
@@ -280,6 +287,24 @@
 			setRadius( n + 'px' );
 		}
 
+		// ---- ToolsPanel reset wiring --------------------------------------
+		// Defaults each control resets back to (the panel's initial state). A
+		// control "hasValue" when it differs from its default; that is what the
+		// three-dot menu uses to enable the per-control reset and mark it active.
+		var DEFAULT_WIDTH  = '1px';
+		var DEFAULT_RADIUS = '0px';
+		function hasColor( c ) { return !! ( c && c.value ); }
+		function resetText()   { setTextColor( EMPTY ); }
+		function resetBg()     { setBgColor( EMPTY ); }
+		function resetColors() { resetText(); resetBg(); }
+		function borderHasValue() { return borderWidth !== DEFAULT_WIDTH || hasColor( borderColor ); }
+		function resetBorder() { setBorderWidth( DEFAULT_WIDTH ); setBorderColor( EMPTY ); }
+		function radiusHasValue() { return px( radius ) !== px( DEFAULT_RADIUS ); }
+		function resetRadius() { setRadius( DEFAULT_RADIUS ); }
+		function shadowHasValue() { return !! ( shadowStyle && shadowStyle.shadow ); }
+		function resetShadow() { setShadowStyle( {} ); }
+		function resetFields() { resetBorder(); resetRadius(); resetShadow(); }
+
 		var textCss   = cssFor( textColor );
 		var bgCss     = cssFor( bgColor );
 		var borderCss = cssFor( borderColor );
@@ -306,10 +331,10 @@
 
 		return el( VStack, { spacing: 6, className: 'ufc-proposed' },
 
-			// ---- Layout: the decisions that change field STRUCTURE ---------
+			// ---- Layout: field STRUCTURE decisions. No group heading — the
+			//      three toggles are self-labelled, so the "Layout" title was
+			//      redundant. ---------------------------------------------------
 			el( VStack, { spacing: 4 },
-				Section( 'Layout' ),
-
 				el( ToggleGroupControl, {
 					label: 'Label position',
 					value: label,
@@ -348,105 +373,158 @@
 				)
 			),
 
-			// ---- Colors ----------------------------------------------------
-			// Background is only meaningful for a filled field, so its row is
-			// hidden entirely under Unfilled — not shown as an empty swatch.
-			el( VStack, { spacing: 3 },
-				Section( 'Colors' ),
-				el( ItemGroup, { isBordered: true, isSeparated: true },
-					el( ColorRow, { label: 'Text', color: textColor, onChange: setTextColor } ),
-					isFilled
-						? el( ColorRow, { label: 'Background', color: bgColor, onChange: setBgColor } )
-						: null
-				)
+			Rule(),
+
+			// ---- Colors: a ToolsPanel so the group's own three-dot menu gives
+			//      per-row reset + "Reset all" for Text and Background. Its
+			//      header label ("Colors") replaces the old standalone heading.
+			//      Background is only meaningful on a filled field, so its item
+			//      is dropped entirely under Unfilled. ---------------------------
+			el( ToolsPanel, {
+				label: 'Colors',
+				className: 'ufc-proposed__panel',
+				resetAll: resetColors,
+				panelId: 'uf-proposed-colors',
+				__experimentalFirstVisibleItemClass: 'ufc-proposed__first',
+			},
+				el( ToolsPanelItem, {
+					label: 'Text',
+					isShownByDefault: true,
+					hasValue: function () { return hasColor( textColor ); },
+					onDeselect: resetText,
+					panelId: 'uf-proposed-colors',
+				}, el( ColorRow, { label: 'Text', color: textColor, onChange: setTextColor } ) ),
+
+				isFilled
+					? el( ToolsPanelItem, {
+						label: 'Background',
+						isShownByDefault: true,
+						hasValue: function () { return hasColor( bgColor ); },
+						onDeselect: resetBg,
+						panelId: 'uf-proposed-colors',
+					}, el( ColorRow, { label: 'Background', color: bgColor, onChange: setBgColor } ) )
+					: null
 			),
 
-			// ---- Border & Shadow -------------------------------------------
-			el( VStack, { spacing: 4 },
-				Section( 'Border & Shadow' ),
+			Rule(),
 
-				el( 'div', null,
-					Label( 'Border' ),
-					el( HStack, { spacing: 3, alignment: 'center' },
-						el( UnitControl, {
-							className: 'ufc-proposed__width',
-							label: 'Border width',
-							hideLabelFromVision: true,
-							value: borderWidth,
-							units: [ { value: 'px', label: 'px', default: 1 } ],
-							min: minWidth,
-							max: MAX_BORDER_WIDTH,
-							__nextHasNoMarginBottom: true,
-							__next40pxDefaultSize: true,
-							prefix: el( SwatchPrefix, { color: borderColor, onChange: setBorderColor } ),
-							onChange: commitWidth,
-						} ),
-						el( RangeControl, {
-							className: 'ufc-proposed__slider',
-							label: 'Border width',
-							hideLabelFromVision: true,
-							value: px( borderWidth ),
-							min: minWidth,
-							max: MAX_BORDER_WIDTH,
-							step: 1,
-							withInputField: false,
-							__nextHasNoMarginBottom: true,
-							__next40pxDefaultSize: true,
-							onChange: commitWidth,
-						} )
+			// ---- Fields: a ToolsPanel (renamed from "Border & Shadow"). Its
+			//      three-dot menu resets Border, Radius and Shadow individually
+			//      or all at once. ---------------------------------------------
+			el( ToolsPanel, {
+				label: 'Fields',
+				className: 'ufc-proposed__panel',
+				resetAll: resetFields,
+				panelId: 'uf-proposed-fields',
+				__experimentalFirstVisibleItemClass: 'ufc-proposed__first',
+			},
+				el( ToolsPanelItem, {
+					label: 'Border',
+					isShownByDefault: true,
+					hasValue: borderHasValue,
+					onDeselect: resetBorder,
+					panelId: 'uf-proposed-fields',
+				},
+					el( 'div', null,
+						Label( 'Border' ),
+						el( HStack, { spacing: 3, alignment: 'center' },
+							el( UnitControl, {
+								className: 'ufc-proposed__width',
+								label: 'Border width',
+								hideLabelFromVision: true,
+								value: borderWidth,
+								units: [ { value: 'px', label: 'px', default: 1 } ],
+								min: minWidth,
+								max: MAX_BORDER_WIDTH,
+								__nextHasNoMarginBottom: true,
+								__next40pxDefaultSize: true,
+								prefix: el( SwatchPrefix, { color: borderColor, onChange: setBorderColor } ),
+								onChange: commitWidth,
+							} ),
+							el( RangeControl, {
+								className: 'ufc-proposed__slider',
+								label: 'Border width',
+								hideLabelFromVision: true,
+								value: px( borderWidth ),
+								min: minWidth,
+								max: MAX_BORDER_WIDTH,
+								step: 1,
+								withInputField: false,
+								__nextHasNoMarginBottom: true,
+								__next40pxDefaultSize: true,
+								onChange: commitWidth,
+							} )
+						)
 					)
 				),
 
-				el( 'div', null,
-					Label( 'Radius' ),
-					el( HStack, { spacing: 3, alignment: 'center' },
-						el( UnitControl, {
-							className: 'ufc-proposed__radius',
-							label: 'Radius',
-							hideLabelFromVision: true,
-							value: radius,
-							units: [ { value: 'px', label: 'px', default: 0 } ],
-							min: 0,
-							max: Math.floor( maxRadius ),
-							__nextHasNoMarginBottom: true,
-							__next40pxDefaultSize: true,
-							onChange: commitRadius,
-						} ),
-						el( RangeControl, {
-							className: 'ufc-proposed__slider',
-							label: 'Radius',
-							hideLabelFromVision: true,
-							value: px( radius ),
-							min: 0,
-							max: Math.floor( maxRadius ),
-							step: 1,
-							withInputField: false,
-							__nextHasNoMarginBottom: true,
-							__next40pxDefaultSize: true,
-							onChange: commitRadius,
-						} )
+				el( ToolsPanelItem, {
+					label: 'Radius',
+					isShownByDefault: true,
+					hasValue: radiusHasValue,
+					onDeselect: resetRadius,
+					panelId: 'uf-proposed-fields',
+				},
+					el( 'div', null,
+						Label( 'Radius' ),
+						el( HStack, { spacing: 3, alignment: 'center' },
+							el( UnitControl, {
+								className: 'ufc-proposed__radius',
+								label: 'Radius',
+								hideLabelFromVision: true,
+								value: radius,
+								units: [ { value: 'px', label: 'px', default: 0 } ],
+								min: 0,
+								max: Math.floor( maxRadius ),
+								__nextHasNoMarginBottom: true,
+								__next40pxDefaultSize: true,
+								onChange: commitRadius,
+							} ),
+							el( RangeControl, {
+								className: 'ufc-proposed__slider',
+								label: 'Radius',
+								hideLabelFromVision: true,
+								value: px( radius ),
+								min: 0,
+								max: Math.floor( maxRadius ),
+								step: 1,
+								withInputField: false,
+								__nextHasNoMarginBottom: true,
+								__next40pxDefaultSize: true,
+								onChange: commitRadius,
+							} )
+						)
 					)
 				),
 
-				// Shadow: the block editor's OWN shadow control, not a bespoke
-				// one. BorderPanel is constrained (via shadowOnlySettings) to
-				// render just its Shadow row — the real `ShadowPopover`, the same
-				// one under Styles > Blocks > Button. Its choice drives the
-				// preview through the `shadow` bridge key, which sets
-				// --uf-field-shadow (see site-editor-form-fields.php).
-				//
-				// A shadow only reads on a filled field, so under Unfilled the
-				// whole control is disabled (greyed, non-interactive) via the
-				// `Disabled` component rather than removed — the preview already
-				// drops the shadow when unfilled (see the effect above).
+				// Shadow as a ToolsPanelItem in THIS panel, so it resets from the
+				// Fields menu with everything else. The control itself is still
+				// the block editor's own shadow picker — BorderPanel constrained
+				// (via shadowOnlySettings) to just its Shadow row, the same
+				// `ShadowPopover` under Styles > Blocks > Button. BorderPanel is
+				// itself a ToolsPanel, so its own header (the "Shadow" heading +
+				// three-dot menu) and item divider are suppressed in CSS
+				// (.ufc-proposed__shadow) — that chrome is now provided by the
+				// Fields panel, not the nested one. A shadow only reads on a
+				// filled field, so under Unfilled it is disabled (greyed,
+				// inert) via `Disabled`; the preview already drops it there.
 				BorderPanel
-					? el( Disabled, { isDisabled: ! isFilled },
-						el( BorderPanel, {
-							value: shadowStyle,
-							onChange: setShadowStyle,
-							settings: shadowOnlySettings(),
-							panelId: 'uf-proposed-shadow',
-						} )
+					? el( ToolsPanelItem, {
+						label: 'Shadow',
+						className: 'ufc-proposed__shadow',
+						isShownByDefault: true,
+						hasValue: shadowHasValue,
+						onDeselect: resetShadow,
+						panelId: 'uf-proposed-fields',
+					},
+						el( Disabled, { isDisabled: ! isFilled },
+							el( BorderPanel, {
+								value: shadowStyle,
+								onChange: setShadowStyle,
+								settings: shadowOnlySettings(),
+								panelId: 'uf-proposed-shadow',
+							} )
+						)
 					)
 					: null
 			)

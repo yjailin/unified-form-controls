@@ -15,14 +15,32 @@
  * @package UnifiedFormControls
  */
 
-/* Group heading — "Layout", "Colors", "Border & Shadow". */
-.ufc-proposed .ufc-proposed__heading {
+/* Group divider — hairline between the Layout toggles, Colors and Fields. */
+.ufc-proposed .ufc-proposed__divider {
+	height: 0;
 	margin: 0;
-	font-size: var( --wpds-typography-font-size-md );
-	font-weight: var( --wpds-typography-font-weight-emphasis );
-	line-height: var( --wpds-typography-line-height-md );
-	color: var( --wpds-color-foreground-content-neutral );
-	text-transform: none;
+	border: 0;
+	border-top: 1px solid var( --wpds-color-border-layout-neutral, #e0e0e0 );
+}
+
+/* Colors and Fields are ToolsPanels (for the built-in reset menu). Drop the
+   panel's own default top border and outer padding so our explicit dividers are
+   the only separators and the rows line up with the Layout toggles above. The
+   two-column grid is collapsed to one so each control spans the full width. */
+.ufc-proposed .ufc-proposed__panel.components-tools-panel {
+	border: 0;
+	margin: 0;
+	padding: 0;
+	gap: var( --wpds-dimension-gap-md, 16px ) 0;
+}
+.ufc-proposed .ufc-proposed__panel > .components-tools-panel-item {
+	grid-column: 1 / -1;
+	margin: 0;
+}
+/* The panel header (its "Colors" / "Fields" label + three-dot menu) sits flush
+   with the rows now that the panel padding is gone. */
+.ufc-proposed .ufc-proposed__panel > .components-tools-panel-header {
+	margin: 0;
 }
 
 /* Small-caps control label, matching the ToggleGroupControl labels that the
@@ -78,4 +96,27 @@
 .ufc-proposed .ufc-proposed__slider {
 	flex: 1 1 auto;
 	margin-bottom: 0;
+}
+
+/* Shadow row. The control is the block editor's real shadow picker, reached via
+   BorderPanel — which is itself a ToolsPanel. Strip that nested panel's chrome:
+   its "Shadow" heading + own three-dot menu, and the divider/padding around it,
+   so it reads as a plain row whose menu and reset are owned by the Fields panel.
+   Also collapse its grid + padding so the Drop shadow toggle is the same width
+   as the Border and Radius rows. */
+.ufc-proposed .ufc-proposed__shadow .components-tools-panel-header {
+	display: none;
+}
+.ufc-proposed .ufc-proposed__shadow .components-tools-panel {
+	border: 0;
+	margin: 0;
+	padding: 0;
+	gap: 0;
+	grid-template-columns: 1fr;
+}
+.ufc-proposed .ufc-proposed__shadow .components-tools-panel-item {
+	grid-column: 1 / -1;
+	margin: 0;
+	padding: 0;
+	border: 0;
 }
