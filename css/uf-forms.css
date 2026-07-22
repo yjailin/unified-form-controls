@@ -1526,6 +1526,58 @@
 		.uf-field--float textarea:disabled ~ label {
 			opacity: .5;
 		}
+
+		/* ===== Variant: Label position = Middle (floating notch) =======
+		   Material "outlined" floating label. At rest the label sits inside
+		   the field (the default rest position); on focus, or when the field
+		   has a value, it floats UP to rest centered ON the top border,
+		   notching it with a chip of the page background.
+
+		   Distinct from the default float — which shrinks the label to just
+		   INSIDE the top edge — and from Above, which parks it statically
+		   above the field. Only `.uf-field--float` is targeted, i.e. text
+		   inputs and inputs-with-control; checkbox / radio / toggle-group are
+		   never `.uf-field--float`, so their labels are untouched (as is
+		   every other label-position mode).
+
+		   The notch colour is the theme's `base` preset because it must be
+		   OPAQUE to hide the border it crosses — --uf-field-bg is transparent
+		   and would not. */
+
+		/* Value centering: with the label out on the border, the top padding
+		   no longer reserves label space, so split the vertical padding evenly
+		   (same total — field height is unchanged) and the value reads as
+		   centered. Textareas keep their top-anchored content. */
+		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"] .uf-field--float input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="hidden"]),
+		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"] .uf-field--float select {
+			padding-top: calc(var(--uf-field-inset) + (var(--_uf-label-h) + var(--uf-field-label-gap)) / 2) !important;
+			padding-bottom: calc(var(--uf-field-inset) + (var(--_uf-label-h) + var(--uf-field-label-gap)) / 2) !important;
+		}
+
+		/* Floated state — focus or has-value for text inputs; selects and
+		   textareas always. Rest on the top border, centered on it, with an
+		   opaque page-background notch. Higher specificity than the base
+		   shrunk rule (the [data-label="middle"] ancestor) so it wins. */
+		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"] .uf-field--float:has(select) > label,
+		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"] .uf-field--float:has(textarea) > label,
+		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"] .uf-field--float input:focus ~ label,
+		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"] .uf-field--float input:not(:placeholder-shown) ~ label {
+			/* These selectors also match the base "shrunk" rule, which sets
+			   top: var(--_uf-shrunk-top) with !important. Rather than fight
+			   that on `top` (a :has()/:is() specificity tie that is not worth
+			   forcing), we leave `top` at shrunk-top and lift the label the
+			   rest of the way with transform (which reliably wins over the
+			   base translateY(0)): moving its centre from shrunk-top up onto
+			   the border (y = 0). */
+			transform: translateY(calc(-50% - var(--_uf-shrunk-top))) !important;
+			background: var(--wp--preset--color--base, Canvas) !important;
+			padding-left: 0.3em !important;
+			padding-right: 0.3em !important;
+			/* Pull left by the notch padding so the label text stays aligned
+			   with the value text (which starts at --_uf-pad-x). */
+			left: calc(var(--_uf-pad-x) - 0.3em) !important;
+		}
+
 		.uf-field .uf-error {
 			display: block;
 			margin-top: 0.4em;
