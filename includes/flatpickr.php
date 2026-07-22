@@ -235,6 +235,14 @@ function ufc_enqueue_flatpickr() {
 		.flatpickr-day.today.selected::after {
 			background: currentColor;
 		}
+		/* Selected day — LOCKED SPEC (do not re-tint in colour passes):
+		     unselected day = no background, number in the field TEXT colour
+		                      (the calendar's own colour, set on .flatpickr-calendar);
+		     selected day    = cell background in the field TEXT colour,
+		                      number in the field BACKGROUND colour (--_cal-bg,
+		                      which falls back to the page base when no fill is set
+		                      so the number stays visible).
+		   This is a plain inversion of the field's own text/background pair. */
 		.flatpickr-day.selected,
 		.flatpickr-day.startRange,
 		.flatpickr-day.endRange,
