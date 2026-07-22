@@ -1699,7 +1699,10 @@
 			margin: calc((1lh - 1em) / 2) 0 0;
 			flex: 0 0 auto;
 			background: transparent;
-			border: var(--uf-field-border-width) solid var(--uf-field-border);
+			/* Track the field border width, but never below 1px: a checkbox /
+			   radio with no outline would be invisible, so it keeps a hairline
+			   even when the field border is set to 0. */
+			border: max(1px, var(--uf-field-border-width)) solid var(--uf-field-border);
 			color: var(--uf-field-text);
 			font-size: var(--uf-field-font-size);
 			position: relative;
@@ -1918,7 +1921,11 @@
 		body.single-product form.cart .wc-block-components-quantity-selector {
 			display: inline-flex !important;
 			align-items: stretch !important;
-			border: 1px solid currentColor !important;
+			/* Track the same border-width token as the fields (was a hardcoded
+			   1px). The stepper's outer size is fixed (width + min-height,
+			   box-sizing: border-box) and its contents are centred, so a wider
+			   border grows inward without shifting anything visible. */
+			border: var(--uf-field-border-width) solid currentColor !important;
 			border-color: currentColor !important;
 			border-radius: var(--uf-field-radius, 4px) !important;
 			min-height: var(--uf-field-height) !important;
