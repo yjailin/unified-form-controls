@@ -250,7 +250,7 @@ function ufc_enqueue_flatpickr() {
 		   from `currentColor` (the active text color) so it tracks any
 		   color scheme without needing a separate token. */
 		.flatpickr-day.inRange {
-			background: color-mix(in srgb, currentColor 50%, transparent) !important;
+			background: color-mix(in srgb, currentColor 15%, transparent) !important;
 			border-color: transparent !important;
 			border-radius: 0 !important;
 			box-shadow: none !important;

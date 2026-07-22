@@ -1916,7 +1916,7 @@
 		/* Hover: solid background using the page base color (matches the
 		   selected state so hover reads as a preview of selection). */
 		.uf-toggle-group__option:hover {
-			background-color: color-mix(in srgb, var(--uf-field-text) 7%, transparent);
+			background-color: color-mix(in srgb, var(--uf-field-text) 15%, transparent);
 		}
 		/* Selected: site background fill with text-color ring and text-color
 		   labels. The ring tracks the field border-width token (same value as
