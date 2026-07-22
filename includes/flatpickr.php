@@ -73,7 +73,10 @@ function ufc_enqueue_flatpickr() {
 			   pill radius instead. */
 			border-radius: min(var(--uf-field-radius, 4px), calc(var(--uf-field-height, 55px) / 2)) !important;
 			box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08) !important;
-			border: 1px solid var(--_cal-border) !important;
+			/* Popover/inline border tracks the field BORDER WIDTH + colour (the
+			   width var is set on <body> by the bridge; 1px fallback). box-sizing
+			   is border-box, so a wider border grows inward without resizing. */
+			border: var(--uf-field-border-width, 1px) solid var(--_cal-border) !important;
 			/* Symmetric 12px padding on all four sides — same horizontal
 			   spacing as before; top now matches bottom so the time-only
 			   popover and the day grid don't sit flush against the top
@@ -183,9 +186,11 @@ function ufc_enqueue_flatpickr() {
 			border-color: transparent !important;
 			/* `outline` (not `border`) so rightmost-column hover can't be
 			   clipped by the calendar's own right border. Outlines render
-			   on top of the element without affecting its box. */
-			outline: 1px solid var(--_cal-border) !important;
-			outline-offset: -1px !important;
+			   on top of the element without affecting its box. Width tracks the
+			   field BORDER WIDTH; the negative offset equals that width so a
+			   thicker outline sits fully inside the cell instead of overflowing. */
+			outline: var(--uf-field-border-width, 1px) solid var(--_cal-border) !important;
+			outline-offset: calc(-1 * var(--uf-field-border-width, 1px)) !important;
 		}
 		/* Disabled / prev-month / next-month days: no hover affordance —
 		   they're not selectable. Cursor reflects it too. */
