@@ -1718,6 +1718,13 @@
 			appearance: none;
 			-webkit-appearance: none;
 			-moz-appearance: none;
+			/* content-box so the border grows OUTWARD (like the text fields'
+			   outset ring) instead of eating into the box: the content area — and
+			   with it the ::after checkmark / radio dot, which are positioned to
+			   `inset: 0` (the padding box) — stays a fixed 1em at any border
+			   width. With the default border-box, a thicker border shrank the
+			   inner box and clipped the mark. */
+			box-sizing: content-box;
 			width: 1em;
 			height: 1em;
 			line-height: inherit;
@@ -1882,10 +1889,14 @@
 		.uf-toggle-group__option:hover {
 			background-color: color-mix(in srgb, var(--uf-field-text) 7%, transparent);
 		}
-		/* Selected: site background fill with text-color ring and text-color labels. */
+		/* Selected: site background fill with text-color ring and text-color
+		   labels. The ring tracks the field border-width token (same value as
+		   the fields) instead of a hardcoded 1px, so widening the border widens
+		   this ring too. It is an inset ring, so it thickens inward toward the
+		   already-padded label — the tile size and layout stay put. */
 		.uf-toggle-group__option:has(input:checked) {
 			background-color: var(--wp--preset--color--base);
-			box-shadow: inset 0 0 0 1px var(--uf-field-text);
+			box-shadow: inset 0 0 0 var(--uf-field-border-width) var(--uf-field-text);
 		}
 		.uf-toggle-group__option:has(input:checked) .uf-toggle-group__header,
 		.uf-toggle-group__option:has(input:checked) .uf-toggle-group__sublabel {
