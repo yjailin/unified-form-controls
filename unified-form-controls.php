@@ -81,5 +81,19 @@ add_action(
 			array( 'uf-tokens' ),
 			file_exists( $forms_path ) ? filemtime( $forms_path ) : UNIFIED_FORM_CONTROLS_VERSION
 		);
+
+		// Proposed-screen-only preview overrides. Loaded alongside uf-forms so
+		// it reaches every context the fields render in (incl. the Site Editor
+		// preview iframe), but every rule inside is gated behind the
+		// `[data-uf-label-align="pinned"]` marker that ONLY the proposed screen
+		// sets — so it stays completely inert for the other screens, the real
+		// front-end forms, and Checkout. Kept out of uf-forms.css on purpose.
+		$proposed_path = UNIFIED_FORM_CONTROLS_PATH . 'css/uf-proposed-preview.css';
+		wp_enqueue_style(
+			'uf-proposed-preview',
+			UNIFIED_FORM_CONTROLS_URL . 'css/uf-proposed-preview.css',
+			array( 'uf-forms' ),
+			file_exists( $proposed_path ) ? filemtime( $proposed_path ) : UNIFIED_FORM_CONTROLS_VERSION
+		);
 	}
 );

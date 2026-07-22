@@ -154,6 +154,18 @@ add_action(
 						? root.style.setProperty( '--wp--custom--field--fill', d.fillColor )
 						: root.style.removeProperty( '--wp--custom--field--fill' );
 				}
+				// Optional marker. Only the "Form controls (proposed)" screen
+				// sends `labelAlign`; when set, it flips on the proposed-only
+				// preview overrides in uf-proposed-preview.css (resting-label
+				// alignment). No other screen sends the key, so the guard keeps
+				// this inert everywhere else.
+				if ( d.labelAlign !== undefined ) {
+					d.labelAlign
+						? ( root.setAttribute( 'data-uf-label-align', d.labelAlign ),
+							document.body.setAttribute( 'data-uf-label-align', d.labelAlign ) )
+						: ( root.removeAttribute( 'data-uf-label-align' ),
+							document.body.removeAttribute( 'data-uf-label-align' ) );
+				}
 			}
 
 			apply( init );

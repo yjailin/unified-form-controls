@@ -301,6 +301,11 @@
 				// no surface to cast from), so it is gated on the fill state, not
 				// just on whether a shadow value happens to be set.
 				shadow:      isFilled ? shadowStyleToCss( shadowStyle.shadow ) : null,
+				// Proposed-screen-only marker: flips on the resting-label
+				// alignment overrides (uf-proposed-preview.css) in the preview.
+				// Only this screen sends it, so the behaviour never leaks to the
+				// other screens or the real front-end forms.
+				labelAlign:  'pinned',
 			} );
 		}, [ label, fill, borderStyle, textCss, bgCss, borderCss, borderWidth, radius, shadowStyle.shadow ] );
 

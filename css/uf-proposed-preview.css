@@ -1,0 +1,90 @@
+/**
+ * Proposed-screen-only preview overrides.
+ *
+ * This file is deliberately NOT part of the shared showcase CSS (uf-forms.css).
+ * Every rule here is gated behind the `[data-uf-label-align="pinned"]` marker,
+ * which is set ONLY when the "Form controls (proposed)" screen is driving the
+ * preview (the proposed panel sends `labelAlign: 'pinned'` through the bridge;
+ * no other screen does, and the shared bridge only sets the attribute when that
+ * key is present). So none of this affects the original / native screens, the
+ * real front-end forms, or Checkout — it exists purely to try out a proposed
+ * behaviour in the proposed screen's preview.
+ *
+ * Behaviour: RESTING label alignment for the floating-label modes (Inside and
+ * Middle). Normally an empty field shows its label centred like a placeholder
+ * (--_uf-rest-top) and it floats UP to the top/border when the field is focused
+ * or filled. In a grid that pairs an empty field with a filled one on the same
+ * row, those two labels sit at different heights and the row reads as jagged.
+ *
+ * Here we pin only the label's VERTICAL position to the floated Y in every
+ * state, so empty and filled labels line up across a row. The float-on-focus
+ * animation is kept: font-size is left untouched, so the label still shrinks
+ * from the rest size to the small size on focus/fill (a `font-size` transition,
+ * no vertical jump). This is the "empty rest moves up to the floated Y" choice
+ * — not a static label (which would also pin the font-size).
+ *
+ * All the custom properties used below (--_uf-shrunk-top, --_uf-pad-x,
+ * --uf-field-inset-extra, --uf-field-border-width, --uf-notch-x/w) are defined
+ * on `.uf-field--float` (and the field root) in uf-forms.css and inherit down
+ * to the label / input, so we reuse them rather than redefining anything.
+ *
+ * @package UnifiedFormControls
+ */
+
+/* ---- Inside: pin the label's top to the floated position -----------------
+   Only `top` is forced. font-size stays governed by the base rest rule (rest
+   size when empty) and the shrunk rule (small when focused/filled), so the
+   shrink still animates. The extra [data-uf-label-align][data-label] attributes
+   make this out-specify both the base rest rule and the base shrunk rule. */
+:is( .uf-showcase, .uf-checkout, body )[data-uf-label-align="pinned"][data-label="inside"] .uf-field--float > label {
+	top: var( --_uf-shrunk-top ) !important;
+}
+
+/* ---- Middle: pin the label onto the top border in every state ------------
+   Mirrors the base "floated" middle rule (transform lifts the label's centre
+   from shrunk-top onto the border, no background, notch-clearing padding,
+   radius-tracking left offset) but applies to `> label` in EVERY state, so an
+   empty field's label also rests on the border. Again no font-size here, so the
+   label is rest-size when empty and shrinks on focus/fill — the transform's
+   -50% is relative to the label's own (changing) height, so it stays centred on
+   the border at any size. */
+:is( .uf-showcase, .uf-checkout, body )[data-uf-label-align="pinned"][data-label="middle"] .uf-field--float > label {
+	top: var( --_uf-shrunk-top ) !important;
+	transform: translateY( calc( -50% - var( --_uf-shrunk-top ) ) ) !important;
+	background: transparent !important;
+	padding-left: 0.3em !important;
+	padding-right: 0.3em !important;
+	left: calc( var( --_uf-pad-x ) + var( --uf-field-inset-extra, 0px ) - 0.3em ) !important;
+}
+
+/* Middle + Underline: no top border to notch, so un-lift (drop the -50%) and
+   sit the label directly above the value — same as the base rule. */
+:is( .uf-showcase, .uf-checkout, body )[data-uf-label-align="pinned"][data-label="middle"][data-border="underline"] .uf-field--float > label {
+	transform: translateY( calc( -1 * var( --_uf-shrunk-top ) ) ) !important;
+}
+
+/* Middle + Underline + Unfilled: value sits flush left, so align the label. */
+:is( .uf-showcase, .uf-checkout, body )[data-uf-label-align="pinned"][data-label="middle"][data-border="underline"][data-fill="unfilled"] .uf-field--float > label {
+	left: 0 !important;
+	padding-left: 0 !important;
+}
+
+/* Notch for empty middle fields. The base mask only cuts the gap for focused /
+   has-value inputs (and selects/textareas); now that an empty field's label
+   also rests on the border, its top edge must be notched too. Same mask as the
+   base rule, applied to every text-like input (empty included). The notch
+   geometry (--uf-notch-x / --uf-notch-w) is measured per label by the showcase
+   JS for every field, so empty fields already have their window sized. */
+:is( .uf-showcase, .uf-checkout, body )[data-uf-label-align="pinned"][data-label="middle"] .uf-field--float input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="hidden"]) {
+	--_uf-notch-h: calc( var( --uf-field-border-width ) + 1px );
+	-webkit-mask: linear-gradient( #000 0 0 ), linear-gradient( #000 0 0 );
+	-webkit-mask-position: 0 0, var( --uf-notch-x, -999px ) 0;
+	-webkit-mask-size: 100% 100%, var( --uf-notch-w, 0px ) var( --_uf-notch-h );
+	-webkit-mask-repeat: no-repeat, no-repeat;
+	-webkit-mask-composite: source-out;
+	mask: linear-gradient( #000 0 0 ), linear-gradient( #000 0 0 );
+	mask-position: 0 0, var( --uf-notch-x, -999px ) 0;
+	mask-size: 100% 100%, var( --uf-notch-w, 0px ) var( --_uf-notch-h );
+	mask-repeat: no-repeat, no-repeat;
+	mask-composite: subtract;
+}
