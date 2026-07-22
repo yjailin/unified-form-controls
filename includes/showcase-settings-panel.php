@@ -260,9 +260,11 @@ add_action( 'wp_footer', function () {
 	body { padding-left: 300px !important; padding-right: 0 !important; }
 	<?php endif; ?>
 
-	/* Dynamic inset: shifts only horizontal positioning as corners get more rounded. */
+	/* Dynamic inset: shifts only horizontal positioning as corners get more
+	   rounded. textarea is included so its value lines up with the text inputs. */
 	.uf-showcase .uf-field > input,
-	.uf-showcase .uf-field > select {
+	.uf-showcase .uf-field > select,
+	.uf-showcase .uf-field > textarea {
 		padding-left: calc( max( 16px, 0.875rem ) * 0.55 + var( --uf-field-inset-extra, 0px ) ) !important;
 	}
 	.uf-showcase .uf-field > label {

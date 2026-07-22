@@ -63,9 +63,13 @@ add_action(
 		$corners = $r === 0.0 ? 'sharp' : ( $r >= 999 ? 'pill' : 'rounded' );
 		?>
 		<style id="uf-field-inset-rules">
-		/* Dynamic inset: label left-edge and icon right-edge track border-radius. */
+		/* Dynamic inset: label left-edge and icon right-edge track border-radius.
+		   textarea is included so its value's left edge lines up with the
+		   text inputs (both get inset + inset-extra); without it the textarea
+		   value sat ~inset-extra px to the left. */
 		:is( .uf-showcase, .uf-checkout ) .uf-field > input,
-		:is( .uf-showcase, .uf-checkout ) .uf-field > select {
+		:is( .uf-showcase, .uf-checkout ) .uf-field > select,
+		:is( .uf-showcase, .uf-checkout ) .uf-field > textarea {
 			padding-left: calc( max( 16px, 0.875rem ) * 0.55 + var( --uf-field-inset-extra, 0px ) ) !important;
 		}
 		:is( .uf-showcase, .uf-checkout ) .uf-field > label {
