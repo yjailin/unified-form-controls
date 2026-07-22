@@ -657,6 +657,65 @@ add_action( 'template_redirect', function () {
 			});
 			fields.forEach(function (f) { obs.observe(f); });
 		})();
+
+		/*
+		 * Middle label position — border notch measurement.
+		 *
+		 * The "middle" floating label rests on the top border, which the CSS
+		 * breaks with a real gap by masking a window out of the field's top
+		 * edge. CSS can position that window but not size it — only JS knows
+		 * the label's rendered width — so we publish the floated label's
+		 * offsetLeft / offsetWidth as --uf-notch-x / --uf-notch-w on the field.
+		 * The mask only consumes them in middle mode, so this is harmless in
+		 * every other mode.
+		 */
+		(function () {
+			var root = document.querySelector('.uf-showcase') || document.body;
+			var fields = document.querySelectorAll('.uf-field--float');
+			if (!fields.length) { return; }
+
+			function measure(field) {
+				var label = field.querySelector(':scope > label');
+				if (!label) { return; }
+				field.style.setProperty('--uf-notch-x', label.offsetLeft + 'px');
+				field.style.setProperty('--uf-notch-w', label.offsetWidth + 'px');
+			}
+			function measureAll() {
+				for (var i = 0; i < fields.length; i++) { measure(fields[i]); }
+			}
+
+			// The label changes size when it floats (its font shrinks), so a
+			// ResizeObserver on each label re-measures through the transition —
+			// the gap opens in step with the label.
+			if (typeof ResizeObserver === 'function') {
+				var ro = new ResizeObserver(function (entries) {
+					for (var i = 0; i < entries.length; i++) {
+						var field = entries[i].target.closest('.uf-field--float');
+						if (field) { measure(field); }
+					}
+				});
+				fields.forEach(function (f) {
+					var l = f.querySelector(':scope > label');
+					if (l) { ro.observe(l); }
+				});
+			}
+
+			// Focus floats an empty field's label without a size change big
+			// enough to always fire the observer first frame — re-measure then.
+			root.addEventListener('focusin', function () { requestAnimationFrame(measureAll); });
+			root.addEventListener('focusout', function () { requestAnimationFrame(measureAll); });
+
+			// Variant switches can shift geometry (label font/gap, border width).
+			if (window.MutationObserver) {
+				new MutationObserver(measureAll).observe(root, {
+					attributes: true,
+					attributeFilter: ['data-label', 'data-border', 'data-fill', 'data-corners'],
+				});
+			}
+
+			window.addEventListener('load', measureAll);
+			measureAll();
+		})();
 		</script>
 	</main>
 	<?php wp_footer(); ?>

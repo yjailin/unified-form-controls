@@ -1530,8 +1530,9 @@
 		/* ===== Variant: Label position = Middle (floating notch) =======
 		   Material "outlined" floating label. At rest the label sits inside
 		   the field (the default rest position); on focus, or when the field
-		   has a value, it floats UP to rest centered ON the top border,
-		   notching it with a chip of the page background.
+		   has a value, it floats UP to rest centered ON the top border, which
+		   is BROKEN with a real gap where the label sits — the page shows
+		   through the gap, no background chip behind the label.
 
 		   Distinct from the default float — which shrinks the label to just
 		   INSIDE the top edge — and from Above, which parks it statically
@@ -1540,9 +1541,13 @@
 		   never `.uf-field--float`, so their labels are untouched (as is
 		   every other label-position mode).
 
-		   The notch colour is the theme's `base` preset because it must be
-		   OPAQUE to hide the border it crosses — --uf-field-bg is transparent
-		   and would not. */
+		   The gap is a true break, not a cover: the field element is `mask`ed
+		   to subtract a small window out of its top edge where the label sits.
+		   The window's position/width (--uf-notch-x / --uf-notch-w) are the
+		   floated label's measured offsetLeft / offsetWidth, set by JS in
+		   showcase-page.php (CSS cannot know the label's rendered width).
+		   Masking the field itself — not a separate border line — keeps the
+		   rounded corners and the variable border width intact. */
 
 		/* Value centering: with the label out on the border, the top padding
 		   no longer reserves label space, so split the vertical padding evenly
@@ -1555,9 +1560,10 @@
 		}
 
 		/* Floated state — focus or has-value for text inputs; selects and
-		   textareas always. Rest on the top border, centered on it, with an
-		   opaque page-background notch. Higher specificity than the base
-		   shrunk rule (the [data-label="middle"] ancestor) so it wins. */
+		   textareas always. Rest on the top border, centered on it. NO
+		   background: the label floats in a real gap (cut below). Higher
+		   specificity than the base shrunk rule (the [data-label="middle"]
+		   ancestor) so it wins. */
 		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"] .uf-field--float:has(select) > label,
 		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"] .uf-field--float:has(textarea) > label,
 		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"] .uf-field--float input:focus ~ label,
@@ -1570,12 +1576,38 @@
 			   base translateY(0)): moving its centre from shrunk-top up onto
 			   the border (y = 0). */
 			transform: translateY(calc(-50% - var(--_uf-shrunk-top))) !important;
-			background: var(--wp--preset--color--base, Canvas) !important;
+			background: transparent !important;
+			/* Horizontal padding = the breathing room inside the gap; it is
+			   part of the label's measured width, so the cut clears the text. */
 			padding-left: 0.3em !important;
 			padding-right: 0.3em !important;
 			/* Pull left by the notch padding so the label text stays aligned
 			   with the value text (which starts at --_uf-pad-x). */
 			left: calc(var(--_uf-pad-x) - 0.3em) !important;
+		}
+
+		/* Break the top border: mask a window out of the field's top edge
+		   where the floated label sits. `subtract` removes the second (window)
+		   layer from the first (full) layer, so that rectangle stops painting
+		   — a real gap, not a cover. Applied to the field element (not a
+		   border line) so rounded corners and border width survive untouched.
+		   Window height clears the border (and its inset focus ring, same
+		   width). Defaults keep the window off-canvas until JS measures. */
+		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"] .uf-field--float input:focus,
+		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"] .uf-field--float input:not(:placeholder-shown),
+		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"] .uf-field--float select,
+		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"] .uf-field--float textarea {
+			--_uf-notch-h: calc(var(--uf-field-border-width) + 1px);
+			-webkit-mask: linear-gradient(#000 0 0), linear-gradient(#000 0 0);
+			-webkit-mask-position: 0 0, var(--uf-notch-x, -999px) 0;
+			-webkit-mask-size: 100% 100%, var(--uf-notch-w, 0px) var(--_uf-notch-h);
+			-webkit-mask-repeat: no-repeat, no-repeat;
+			-webkit-mask-composite: source-out;
+			mask: linear-gradient(#000 0 0), linear-gradient(#000 0 0);
+			mask-position: 0 0, var(--uf-notch-x, -999px) 0;
+			mask-size: 100% 100%, var(--uf-notch-w, 0px) var(--_uf-notch-h);
+			mask-repeat: no-repeat, no-repeat;
+			mask-composite: subtract;
 		}
 
 		.uf-field .uf-error {
