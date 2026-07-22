@@ -706,10 +706,14 @@ add_action( 'template_redirect', function () {
 			root.addEventListener('focusout', function () { requestAnimationFrame(measureAll); });
 
 			// Variant switches can shift geometry (label font/gap, border width).
+			// `style` is included because border-radius moves the label right via
+			// the --uf-field-inset-extra inline custom property (set on the root),
+			// and the gap must follow the label. measureAll writes only to the
+			// fields, not the root, so this cannot loop.
 			if (window.MutationObserver) {
 				new MutationObserver(measureAll).observe(root, {
 					attributes: true,
-					attributeFilter: ['data-label', 'data-border', 'data-fill', 'data-corners'],
+					attributeFilter: ['data-label', 'data-border', 'data-fill', 'data-corners', 'style'],
 				});
 			}
 

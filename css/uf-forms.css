@@ -1581,9 +1581,14 @@
 			   part of the label's measured width, so the cut clears the text. */
 			padding-left: 0.3em !important;
 			padding-right: 0.3em !important;
-			/* Pull left by the notch padding so the label text stays aligned
-			   with the value text (which starts at --_uf-pad-x). */
-			left: calc(var(--_uf-pad-x) - 0.3em) !important;
+			/* Track the same horizontal inset as the rest label and the value
+			   text — both shift right with border-radius (--uf-field-inset-extra,
+			   set by the bridge) to clear the rounded corner. Without the
+			   inset-extra term the floated label stayed pinned while everything
+			   else moved, so it drifted left of its own value at higher radii.
+			   The -0.3em cancels the padding-left, so the label TEXT lands on
+			   --_uf-pad-x + inset-extra, exactly where the value text starts. */
+			left: calc(var(--_uf-pad-x) + var(--uf-field-inset-extra, 0px) - 0.3em) !important;
 		}
 
 		/* Break the top border: mask a window out of the field's top edge
