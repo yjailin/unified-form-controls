@@ -150,9 +150,15 @@ add_action(
 							document.body.style.removeProperty( '--uf-field-shadow' ) );
 				}
 				if ( d.fillColor !== undefined ) {
+					// Set on <body> as well as root — the date/time picker popovers
+					// are portaled to <body>, so the calendar background (--_cal-bg,
+					// which reads --wp--custom--field--fill) only reaches them when
+					// the var lives on body, like the border/text/width vars above.
 					d.fillColor
-						? root.style.setProperty( '--wp--custom--field--fill', d.fillColor )
-						: root.style.removeProperty( '--wp--custom--field--fill' );
+						? ( root.style.setProperty( '--wp--custom--field--fill', d.fillColor ),
+							document.body.style.setProperty( '--wp--custom--field--fill', d.fillColor ) )
+						: ( root.style.removeProperty( '--wp--custom--field--fill' ),
+							document.body.style.removeProperty( '--wp--custom--field--fill' ) );
 				}
 			}
 
