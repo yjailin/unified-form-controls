@@ -1593,22 +1593,24 @@
 			padding-top: calc(var(--uf-field-inset) + (var(--_uf-label-h) + var(--uf-field-label-gap)) / 2) !important;
 		}
 
-		/* Floated state — focus or has-value for text inputs; selects and
-		   textareas always. Rest on the top border, centered on it. NO
-		   background: the label floats in a real gap (cut below). Higher
-		   specificity than the base shrunk rule (the [data-label="middle"]
-		   ancestor) so it wins. */
-		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"] .uf-field--float:has(select) > label,
-		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"] .uf-field--float:has(textarea) > label,
-		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"] .uf-field--float input:focus ~ label,
-		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"] .uf-field--float input:not(:placeholder-shown) ~ label {
-			/* These selectors also match the base "shrunk" rule, which sets
-			   top: var(--_uf-shrunk-top) with !important. Rather than fight
-			   that on `top` (a :has()/:is() specificity tie that is not worth
-			   forcing), we leave `top` at shrunk-top and lift the label the
-			   rest of the way with transform (which reliably wins over the
-			   base translateY(0)): moving its centre from shrunk-top up onto
-			   the border (y = 0). */
+		/* Pin the label to the floated position in EVERY state — empty or
+		   filled — for Inside and Middle, so labels line up across a row
+		   instead of dropping to a centred placeholder in empty fields. The
+		   `> label` selector matches the label regardless of the input's
+		   value/focus (the state-conditional shrunk rule only covers filled/
+		   focused fields), and beats the base rest rule via the [data-label]
+		   ancestor. */
+		:is(.uf-showcase, .uf-checkout, body)[data-label="inside"] .uf-field--float > label,
+		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"] .uf-field--float > label {
+			top: var(--_uf-shrunk-top) !important;
+			font-size: calc(var(--uf-field-label-font-size) * 0.9) !important;
+		}
+
+		/* Middle: the label always rests ON the top border (a real gap is cut
+		   below), in every state. NO background — it floats in the gap. Top is
+		   pinned to shrunk-top above; the transform lifts its centre from there
+		   onto the border (y = 0). */
+		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"] .uf-field--float > label {
 			transform: translateY(calc(-50% - var(--_uf-shrunk-top))) !important;
 			background: transparent !important;
 			/* Horizontal padding = the breathing room inside the gap; it is
@@ -1631,10 +1633,7 @@
 		   shrunk-top row (spanning 0..label-height), which sits it directly
 		   above the value — closing the oversized gap to match Above+Underline.
 		   The value's top padding already reserves exactly that row. */
-		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"][data-border="underline"] .uf-field--float:has(select) > label,
-		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"][data-border="underline"] .uf-field--float:has(textarea) > label,
-		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"][data-border="underline"] .uf-field--float input:focus ~ label,
-		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"][data-border="underline"] .uf-field--float input:not(:placeholder-shown) ~ label {
+		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"][data-border="underline"] .uf-field--float > label {
 			transform: translateY(calc(-1 * var(--_uf-shrunk-top))) !important;
 		}
 
@@ -1642,10 +1641,7 @@
 		   padding-left is 0 in this combo), so align the label's left edge to
 		   it — same as Above+Underline. The notch padding is irrelevant with no
 		   border to notch. */
-		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"][data-border="underline"][data-fill="unfilled"] .uf-field--float:has(select) > label,
-		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"][data-border="underline"][data-fill="unfilled"] .uf-field--float:has(textarea) > label,
-		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"][data-border="underline"][data-fill="unfilled"] .uf-field--float input:focus ~ label,
-		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"][data-border="underline"][data-fill="unfilled"] .uf-field--float input:not(:placeholder-shown) ~ label {
+		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"][data-border="underline"][data-fill="unfilled"] .uf-field--float > label {
 			left: 0 !important;
 			padding-left: 0 !important;
 		}
@@ -1656,9 +1652,10 @@
 		   — a real gap, not a cover. Applied to the field element (not a
 		   border line) so rounded corners and border width survive untouched.
 		   Window height clears the border (and its inset focus ring, same
-		   width). Defaults keep the window off-canvas until JS measures. */
-		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"] .uf-field--float input:focus,
-		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"] .uf-field--float input:not(:placeholder-shown),
+		   width). Defaults keep the window off-canvas until JS measures.
+		   Applies in every state (not just focus/has-value) because the label
+		   is now pinned on the border even when the field is empty. */
+		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"] .uf-field--float input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="hidden"]),
 		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"] .uf-field--float select,
 		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"] .uf-field--float textarea {
 			--_uf-notch-h: calc(var(--uf-field-border-width) + 1px);
