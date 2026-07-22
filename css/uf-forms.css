@@ -609,7 +609,11 @@
 			   border variant (underline / none) and for the error state below,
 			   and composed here with the optional drop shadow. */
 			border: 0;
-			--_uf-field-ring: inset 0 0 0 var(--uf-field-border-width) var(--uf-field-border);
+			/* Ring colour as its own token so the error state and the focus
+			   indicator can retint the whole stroke in one place; the ring shape
+			   is unchanged. */
+			--_uf-ring-color: var(--uf-field-border);
+			--_uf-field-ring: inset 0 0 0 var(--uf-field-border-width) var(--_uf-ring-color);
 			box-shadow: var(--_uf-field-ring), var(--uf-field-shadow, 0 0 transparent);
 		}
 		.uf-field textarea { min-height: 96px; resize: vertical; }
@@ -628,28 +632,65 @@
 		.uf-showcase .uf-field.uf-has-error textarea,
 		.uf-showcase input[aria-invalid="true"]:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="hidden"]) {
 			color: var(--uf-field-error) !important;
-			/* Re-tint the ring (see the base rule) to the error colour. */
-			--_uf-field-ring: inset 0 0 0 var(--uf-field-border-width) var(--uf-field-error) !important;
+			/* Re-tint the whole ring — resting border AND focus indicator — to the
+			   error colour via the single ring-colour token. */
+			--_uf-ring-color: var(--uf-field-error) !important;
 		}
 		.uf-field.uf-has-error > label {
 			color: var(--uf-field-error) !important;
 		}
-		/* Error hover/focus: the 2px stroke also uses the error color so the
-		   field stays visually "in error" through every interactive state. */
+		/* Error hover: the doubled stroke uses the error colour so the field
+		   stays visually "in error". Focus is handled by the split focus rules
+		   below (they read --_uf-ring-color, which the error state has already
+		   retinted to the error colour). */
 		.uf-showcase .uf-field.uf-has-error input:hover:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
 		.uf-showcase .uf-field.uf-has-error select:hover,
-		.uf-showcase .uf-field.uf-has-error textarea:hover,
-		.uf-showcase .uf-field.uf-has-error input:focus:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
-		.uf-showcase .uf-field.uf-has-error select:focus,
-		.uf-showcase .uf-field.uf-has-error textarea:focus {
+		.uf-showcase .uf-field.uf-has-error textarea:hover {
 			box-shadow: inset 0 0 0 calc(var(--uf-field-border-width) * 2) var(--uf-field-error), var(--uf-field-shadow, 0 0 transparent) !important;
 		}
 		/* Showcase-only: force a focus-looking state for the "Focused" demo
-		   without relying on autofocus (which scrolls the page on load). */
+		   without relying on autofocus (which scrolls the page on load). The
+		   split focus rules below override this per border style; this stays as
+		   the fallback for the `none` border variant. */
 		.uf-field.uf-is-focused input,
 		.uf-field.uf-is-focused select,
 		.uf-field.uf-is-focused textarea {
 			box-shadow: inset 0 0 0 calc(var(--uf-field-border-width) * 2) var(--uf-field-border), var(--uf-field-shadow, 0 0 transparent) !important;
+			outline: none !important;
+		}
+
+		/* ===== Focus indicator — split by border style =================
+		   Don't thicken the resting border on focus: as an inset ring it grows
+		   INWARD and reads as the field's content shifting. Instead:
+		   - Outline (and the default when no data-border is set): keep the border
+		     ring at its own width and draw a SEPARATE 1px ring 1px OUTSIDE it — a
+		     real outline, painted outside the box (no layout cost) and following
+		     the border-radius.
+		   - Underline: add 1px to the bottom line's thickness.
+		   Colour is --_uf-ring-color, so an error field focuses in the error
+		   colour automatically. Specificity (0,5,1) beats the shared hover/focus
+		   "double the ring" rule in uf-tokens.css (0,2,1), so focus wins here
+		   while hover keeps its subtle thickening. */
+		:is(.uf-showcase, .uf-checkout, body):not([data-border="underline"]):not([data-border="none"]) .uf-field--float input:focus,
+		:is(.uf-showcase, .uf-checkout, body):not([data-border="underline"]):not([data-border="none"]) .uf-field--float select:focus,
+		:is(.uf-showcase, .uf-checkout, body):not([data-border="underline"]):not([data-border="none"]) .uf-field--float textarea:focus,
+		:is(.uf-showcase, .uf-checkout, body):not([data-border="underline"]):not([data-border="none"]) .uf-field--float.uf-is-focused input,
+		:is(.uf-showcase, .uf-checkout, body):not([data-border="underline"]):not([data-border="none"]) .uf-field--float.uf-is-focused select,
+		:is(.uf-showcase, .uf-checkout, body):not([data-border="underline"]):not([data-border="none"]) .uf-field--float.uf-is-focused textarea {
+			/* keep the border ring at its own width (undo the doubling) */
+			box-shadow: var(--_uf-field-ring), var(--uf-field-shadow, 0 0 transparent) !important;
+			/* separate 1px ring, 1px gap, outside the border-box */
+			outline: 1px solid var(--_uf-ring-color) !important;
+			outline-offset: 1px !important;
+		}
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] .uf-field--float input:focus,
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] .uf-field--float select:focus,
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] .uf-field--float textarea:focus,
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] .uf-field--float.uf-is-focused input,
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] .uf-field--float.uf-is-focused select,
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] .uf-field--float.uf-is-focused textarea {
+			/* bottom line thickened by 1px */
+			box-shadow: inset 0 calc(-1 * (var(--uf-field-border-width) + 1px)) 0 0 var(--_uf-ring-color), var(--uf-field-shadow, 0 0 transparent) !important;
 			outline: none !important;
 		}
 
@@ -739,7 +780,7 @@
 			border-top-color: transparent !important;
 			border-left-color: transparent !important;
 			border-right-color: transparent !important;
-			--_uf-field-ring: inset 0 calc(-1 * var(--uf-field-border-width)) 0 0 var(--uf-field-border) !important;
+			--_uf-field-ring: inset 0 calc(-1 * var(--uf-field-border-width)) 0 0 var(--_uf-ring-color) !important;
 		}
 		/* Unfilled underline: no surface to curve → square. Filled
 		   underline: the fill surface follows --uf-field-radius on all
