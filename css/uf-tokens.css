@@ -68,7 +68,12 @@
 	   theme's body text color, whatever style variation is active.
 	   Themes can still override via --wp--custom--field--text. */
 	--uf-field-text: var(--wp--custom--field--text, currentColor);
-	--uf-field-label: var(--wp--custom--field--label, currentColor);
+	/* Labels, helper text and the trailing field icons all read this token, and
+	   they should follow the field TEXT colour by default (a chosen text colour
+	   applies to the whole field, labels included), only diverging if a theme
+	   sets an explicit --wp--custom--field--label. Default resolves to text ->
+	   currentColor, so surfaces that set neither are unchanged. */
+	--uf-field-label: var(--wp--custom--field--label, var(--uf-field-text));
 	--uf-field-placeholder: color-mix(in srgb, var(--uf-field-label) 50%, transparent);
 	--uf-field-border: var(--uf-field-text);
 	/* Stroke weight for field borders. Defaults to 1px, which is what every

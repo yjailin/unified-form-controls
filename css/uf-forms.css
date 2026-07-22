@@ -1447,7 +1447,10 @@
 			width: 1.4em;
 			height: 1.4em;
 			pointer-events: none;
-			background-color: currentColor;
+			/* Chevron glyph follows the field TEXT colour (not the wrapper's
+			   currentColor, which is the black body text) so it matches the other
+			   trailing icons when a text colour is set. */
+			background-color: var(--uf-field-text);
 			-webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M17.5 11.6L12 16l-5.5-4.4.9-1.2L12 14l4.5-3.6 1 1.2z'/%3E%3C/svg%3E");
 			mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M17.5 11.6L12 16l-5.5-4.4.9-1.2L12 14l4.5-3.6 1 1.2z'/%3E%3C/svg%3E");
 			-webkit-mask-repeat: no-repeat;
@@ -1723,7 +1726,14 @@
 			line-height: inherit;
 			margin: calc((1lh - 1em) / 2) 0 0;
 			flex: 0 0 auto;
-			background: transparent;
+			/* Unselected: interior = the field BACKGROUND colour, ring = the
+			   BORDER colour (the box-shadow below). */
+			background: var(--uf-field-fill);
+			/* The mark (checkmark / radio dot) uses the field BACKGROUND colour so
+			   it reads as a cutout on the border-coloured selected box. Falls back
+			   to the page base (white on light themes) when no background colour is
+			   set, so the mark stays visible in the default state. */
+			--_uf-check-mark: var(--wp--custom--field--fill, var(--wp--preset--color--base, light-dark(#fff, #111)));
 			/* The outline is an OUTSET box-shadow ring, not a real border. A real
 			   border grew inward and clipped the ::after checkmark / radio dot
 			   (both inset:0 of the box); content-box fixes that but grows the
@@ -1758,25 +1768,20 @@
 			outline: 1px solid var(--uf-field-border);
 			outline-offset: 0.15em;
 		}
-		/* Checkbox — selected: filled with a checkmark. Check glyph color
-		   is hardcoded to the page base until we move to a mask-image in
-		   the plugin (same treatment as the select chevron). */
+		/* Checkbox — selected: box filled with the BORDER colour, checkmark in
+		   the BACKGROUND colour. */
 		.uf-check input[type="checkbox"]:checked {
-			background-color: var(--uf-field-text);
-			/* Ring colour follows the fill so it disappears into the filled box
-			   (the border colour can differ from the text colour when set). */
-			box-shadow: 0 0 0 max(1px, var(--uf-field-border-width)) var(--uf-field-text);
+			background-color: var(--uf-field-border);
+			box-shadow: 0 0 0 max(1px, var(--uf-field-border-width)) var(--uf-field-border);
 		}
 		.uf-check input[type="checkbox"]:checked::after {
 			content: "";
 			position: absolute;
 			inset: 0;
-			/* Checkmark color = page background, so it stays visible on the
-			   filled checkbox (which is painted with currentColor). Theme's
-			   `base` preset is typically the page bg; if the theme lacks it,
-			   fall back to white on light themes / dark on dark themes via
-			   light-dark() as a safety net. */
-			background-color: var(--wp--preset--color--base, light-dark(#fff, #111));
+			/* Checkmark = the field background colour (cutout look) so it stays
+			   visible on the border-coloured box; base-colour fallback when no
+			   background colour is set. */
+			background-color: var(--_uf-check-mark);
 			-webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M16.5 7.5 10 13.9l-2.5-2.4-1 1 3.5 3.6 7.5-7.6z'/%3E%3C/svg%3E");
 			mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M16.5 7.5 10 13.9l-2.5-2.4-1 1 3.5 3.6 7.5-7.6z'/%3E%3C/svg%3E");
 			-webkit-mask-repeat: no-repeat;
@@ -1787,7 +1792,12 @@
 			mask-size: 110% 110%;
 		}
 
-		/* Radio — selected: outline stays, inner dot appears. */
+		/* Radio — selected: circle filled with the BORDER colour, inner dot in
+		   the BACKGROUND colour. */
+		.uf-radio input[type="radio"]:checked {
+			background-color: var(--uf-field-border);
+			box-shadow: 0 0 0 max(1px, var(--uf-field-border-width)) var(--uf-field-border);
+		}
 		.uf-radio input[type="radio"]:checked::after {
 			content: "";
 			position: absolute;
@@ -1796,7 +1806,7 @@
 			transform: translate(-50%, -50%);
 			width: 0.5em;
 			height: 0.5em;
-			background-color: var(--uf-field-text);
+			background-color: var(--_uf-check-mark);
 			border-radius: 50%;
 		}
 
@@ -1963,8 +1973,11 @@
 			   1px). The stepper's outer size is fixed (width + min-height,
 			   box-sizing: border-box) and its contents are centred, so a wider
 			   border grows inward without shifting anything visible. */
-			border: var(--uf-field-border-width) solid currentColor !important;
-			border-color: currentColor !important;
+			border: var(--uf-field-border-width) solid var(--uf-field-border) !important;
+			border-color: var(--uf-field-border) !important;
+			/* The value (count) and the +/- glyphs inherit this, so they follow
+			   the field text colour like every other icon/label. */
+			color: var(--uf-field-text) !important;
 			border-radius: var(--uf-field-radius, 4px) !important;
 			min-height: var(--uf-field-height) !important;
 			width: var(--uf-stepper-wrapper-width) !important;

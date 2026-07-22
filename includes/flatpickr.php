@@ -50,7 +50,14 @@ function ufc_enqueue_flatpickr() {
 	$css = <<<CSS
 		.flatpickr-calendar {
 			background: var(--wp--preset--color--base) !important;
-			color: currentColor !important;
+			/* The popover is portaled to <body>, outside the field scope, so map
+			   the field colours here from the vars the bridge sets on <body>.
+			   Every "black" thing in the calendar (numbers, arrows, borders, day
+			   hover, selected day) then follows the field TEXT colour; the
+			   selected-day number uses the field BACKGROUND colour for contrast. */
+			--_cal-text: var(--wp--custom--field--text, currentColor);
+			--_cal-bg: var(--wp--custom--field--fill, var(--wp--preset--color--base));
+			color: var(--_cal-text) !important;
 			font-family: inherit !important;
 			/* Follow the showcase's corners variant (sharp / rounded / pill)
 			   via `--uf-field-radius` — defined on `body[data-corners]`.
@@ -60,7 +67,7 @@ function ufc_enqueue_flatpickr() {
 			   pill radius instead. */
 			border-radius: min(var(--uf-field-radius, 4px), calc(var(--uf-field-height, 55px) / 2)) !important;
 			box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08) !important;
-			border: 1px solid var(--uf-divider, rgba(0,0,0,0.12)) !important;
+			border: 1px solid var(--_cal-text) !important;
 			/* Symmetric 12px padding on all four sides — same horizontal
 			   spacing as before; top now matches bottom so the time-only
 			   popover and the day grid don't sit flush against the top
@@ -171,7 +178,7 @@ function ufc_enqueue_flatpickr() {
 			/* `outline` (not `border`) so rightmost-column hover can't be
 			   clipped by the calendar's own right border. Outlines render
 			   on top of the element without affecting its box. */
-			outline: 1px solid var(--uf-site-text, currentColor) !important;
+			outline: 1px solid var(--_cal-text) !important;
 			outline-offset: -1px !important;
 		}
 		/* Disabled / prev-month / next-month days: no hover affordance —
@@ -221,9 +228,9 @@ function ufc_enqueue_flatpickr() {
 		.flatpickr-day.startRange,
 		.flatpickr-day.endRange,
 		.flatpickr-day.selected:hover {
-			background: var(--uf-site-text, var(--wp--preset--color--contrast)) !important;
-			border-color: var(--uf-site-text, var(--wp--preset--color--contrast)) !important;
-			color: var(--uf-site-bg, var(--wp--preset--color--base)) !important;
+			background: var(--_cal-text) !important;
+			border-color: var(--_cal-text) !important;
+			color: var(--_cal-bg) !important;
 		}
 		/* Range mode: paint a continuous "pill" across the picked range.
 		   Middle days are square (no rounded corners) so neighboring fills
