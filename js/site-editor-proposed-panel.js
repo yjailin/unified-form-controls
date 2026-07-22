@@ -59,6 +59,7 @@
 	var ColorIndicator           = C.ColorIndicator;
 	var Button                   = C.Button;
 	var BaseControl              = C.BaseControl;
+	var Disabled                 = C.Disabled;
 	// Verified against the WordPress Design System MCP: ItemGroup/Item is the
 	// canonical grouped-row container (isBordered / isSeparated / isRounded /
 	// size), and InputControlPrefixWrapper is the documented way to pad an
@@ -254,10 +255,24 @@
 		// BorderPanel reads and writes (value.shadow = "var:preset|shadow|<slug>").
 		var i = useState( {} );         var shadowStyle = i[ 0 ]; var setShadowStyle = i[ 1 ];
 
+		// Unfilled is a real layout state, not "filled with no colour". A field
+		// with no fill needs a visible edge, so the border cannot be 0 there:
+		// the minimum width rises to 1 while Unfilled.
+		var isFilled     = 'filled' === fill;
+		var minWidth     = isFilled ? MIN_BORDER_WIDTH : 1;
+
 		function commitWidth( value ) {
 			var n = px( value );
-			if ( ! n ) { n = MIN_BORDER_WIDTH; }
-			setBorderWidth( Math.min( MAX_BORDER_WIDTH, Math.max( MIN_BORDER_WIDTH, n ) ) + 'px' );
+			setBorderWidth( Math.min( MAX_BORDER_WIDTH, Math.max( minWidth, n ) ) + 'px' );
+		}
+
+		function commitFill( value ) {
+			setFill( value );
+			// Entering Unfilled with a 0 border would leave the field with no
+			// visible edge — bump it to the new minimum.
+			if ( 'unfilled' === value && px( borderWidth ) < 1 ) {
+				setBorderWidth( '1px' );
+			}
 		}
 
 		function commitRadius( value ) {
@@ -278,11 +293,14 @@
 				label:       label,
 				radius:      n + 'px',
 				corners:     n === 0 ? 'sharp' : ( n >= maxRadius * 0.99 ? 'pill' : 'rounded' ),
-				fillColor:   'filled' === fill ? bgCss : null,
+				fillColor:   isFilled ? bgCss : null,
 				textColor:   textCss,
 				borderColor: borderCss,
 				borderWidth: borderWidth,
-				shadow:      shadowStyleToCss( shadowStyle.shadow ),
+				// Shadow applies only to filled fields (an outline-only field has
+				// no surface to cast from), so it is gated on the fill state, not
+				// just on whether a shadow value happens to be set.
+				shadow:      isFilled ? shadowStyleToCss( shadowStyle.shadow ) : null,
 			} );
 		}, [ label, fill, borderStyle, textCss, bgCss, borderCss, borderWidth, radius, shadowStyle.shadow ] );
 
@@ -311,7 +329,7 @@
 					isBlock: true,
 					__nextHasNoMarginBottom: true,
 					__next40pxDefaultSize: true,
-					onChange: setFill,
+					onChange: commitFill,
 				},
 					el( ToggleGroupControlOption, { value: 'filled',   label: 'Filled'   } ),
 					el( ToggleGroupControlOption, { value: 'unfilled', label: 'Unfilled' } )
@@ -331,11 +349,15 @@
 			),
 
 			// ---- Colors ----------------------------------------------------
+			// Background is only meaningful for a filled field, so its row is
+			// hidden entirely under Unfilled — not shown as an empty swatch.
 			el( VStack, { spacing: 3 },
 				Section( 'Colors' ),
 				el( ItemGroup, { isBordered: true, isSeparated: true },
-					el( ColorRow, { label: 'Text',       color: textColor, onChange: setTextColor } ),
-					el( ColorRow, { label: 'Background', color: bgColor,   onChange: setBgColor } )
+					el( ColorRow, { label: 'Text', color: textColor, onChange: setTextColor } ),
+					isFilled
+						? el( ColorRow, { label: 'Background', color: bgColor, onChange: setBgColor } )
+						: null
 				)
 			),
 
@@ -352,7 +374,7 @@
 							hideLabelFromVision: true,
 							value: borderWidth,
 							units: [ { value: 'px', label: 'px', default: 1 } ],
-							min: MIN_BORDER_WIDTH,
+							min: minWidth,
 							max: MAX_BORDER_WIDTH,
 							__nextHasNoMarginBottom: true,
 							__next40pxDefaultSize: true,
@@ -364,7 +386,7 @@
 							label: 'Border width',
 							hideLabelFromVision: true,
 							value: px( borderWidth ),
-							min: MIN_BORDER_WIDTH,
+							min: minWidth,
 							max: MAX_BORDER_WIDTH,
 							step: 1,
 							withInputField: false,
@@ -412,12 +434,21 @@
 				// one under Styles > Blocks > Button. Its choice drives the
 				// preview through the `shadow` bridge key, which sets
 				// --uf-field-shadow (see site-editor-form-fields.php).
-				BorderPanel ? el( BorderPanel, {
-					value: shadowStyle,
-					onChange: setShadowStyle,
-					settings: shadowOnlySettings(),
-					panelId: 'uf-proposed-shadow',
-				} ) : null
+				//
+				// A shadow only reads on a filled field, so under Unfilled the
+				// whole control is disabled (greyed, non-interactive) via the
+				// `Disabled` component rather than removed — the preview already
+				// drops the shadow when unfilled (see the effect above).
+				BorderPanel
+					? el( Disabled, { isDisabled: ! isFilled },
+						el( BorderPanel, {
+							value: shadowStyle,
+							onChange: setShadowStyle,
+							settings: shadowOnlySettings(),
+							panelId: 'uf-proposed-shadow',
+						} )
+					)
+					: null
 			)
 		);
 	}

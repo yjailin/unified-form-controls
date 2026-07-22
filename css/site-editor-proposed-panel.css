@@ -59,6 +59,14 @@
 	margin-right: var( --wpds-dimension-gap-sm );
 }
 
+/* Under Unfilled the shadow control is wrapped in the `Disabled` component,
+   which sets `inert` + pointer-events:none but does NOT dim its content
+   (verified: computed opacity stays 1). Add the visual cue so a control you
+   cannot click does not look interactive. Scoped to this screen. */
+.ufc-proposed .components-disabled {
+	opacity: 0.5;
+}
+
 /* Input keeps a fixed width so the slider takes the remaining space, matching
    the proposed design's Border and Radius rows. */
 .ufc-proposed .ufc-proposed__width,
