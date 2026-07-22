@@ -1552,11 +1552,20 @@
 		/* Value centering: with the label out on the border, the top padding
 		   no longer reserves label space, so split the vertical padding evenly
 		   (same total — field height is unchanged) and the value reads as
-		   centered. Textareas keep their top-anchored content. */
+		   centered. */
 		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"] .uf-field--float input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="hidden"]),
 		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"] .uf-field--float select {
 			padding-top: calc(var(--uf-field-inset) + (var(--_uf-label-h) + var(--uf-field-label-gap)) / 2) !important;
 			padding-bottom: calc(var(--uf-field-inset) + (var(--_uf-label-h) + var(--uf-field-label-gap)) / 2) !important;
+		}
+
+		/* Textareas can't centre (their content flows from the top), so only
+		   the TOP padding is matched to the single-line field's — the base
+		   textarea rule still reserves the full inside-label height above the
+		   value (--_uf-pad-top), which reads as too much once the label has
+		   floated out to the border. Bottom padding stays at the base inset. */
+		:is(.uf-showcase, .uf-checkout, body)[data-label="middle"] .uf-field--float textarea {
+			padding-top: calc(var(--uf-field-inset) + (var(--_uf-label-h) + var(--uf-field-label-gap)) / 2) !important;
 		}
 
 		/* Floated state — focus or has-value for text inputs; selects and
