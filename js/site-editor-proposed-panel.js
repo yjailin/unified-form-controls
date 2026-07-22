@@ -59,10 +59,13 @@
 	var Button                   = C.Button;
 	var BaseControl              = C.BaseControl;
 	var Disabled                 = C.Disabled;
-	// Item is the color-row toggle (a full-width button row); it sits inside a
-	// ToolsPanelItem now rather than an ItemGroup. InputControlPrefixWrapper is
-	// the documented way to pad the border-width input's swatch prefix. Both
+	// ItemGroup/Item is the canonical grouped-row container (isBordered /
+	// isSeparated give the bordered, separated colour-row card). Each row is
+	// wrapped in a ToolsPanelItem for reset — the ItemGroupContext still reaches
+	// the inner Item through it, so the card styling is preserved.
+	// InputControlPrefixWrapper pads the border-width input's swatch prefix. All
 	// verified against the WordPress Design System MCP.
+	var ItemGroup                = C.__experimentalItemGroup;
 	var Item                     = C.__experimentalItem;
 	var PrefixWrapper            = C.__experimentalInputControlPrefixWrapper;
 	// ToolsPanel / ToolsPanelItem give each group the native three-dot menu with
@@ -382,28 +385,33 @@
 			//      is dropped entirely under Unfilled. ---------------------------
 			el( ToolsPanel, {
 				label: 'Colors',
-				className: 'ufc-proposed__panel',
+				className: 'ufc-proposed__panel ufc-proposed__panel--colors',
 				resetAll: resetColors,
 				panelId: 'uf-proposed-colors',
-				__experimentalFirstVisibleItemClass: 'ufc-proposed__first',
 			},
-				el( ToolsPanelItem, {
-					label: 'Text',
-					isShownByDefault: true,
-					hasValue: function () { return hasColor( textColor ); },
-					onDeselect: resetText,
-					panelId: 'uf-proposed-colors',
-				}, el( ColorRow, { label: 'Text', color: textColor, onChange: setTextColor } ) ),
-
-				isFilled
-					? el( ToolsPanelItem, {
-						label: 'Background',
+				// The bordered/separated ItemGroup card is the row container. Each
+				// row is a ToolsPanelItem (for the reset menu) whose child is the
+				// ColorRow's Item; ItemGroupContext reaches the Item through the
+				// ToolsPanelItem, so the card border + separators are preserved.
+				el( ItemGroup, { isBordered: true, isSeparated: true },
+					el( ToolsPanelItem, {
+						label: 'Text',
 						isShownByDefault: true,
-						hasValue: function () { return hasColor( bgColor ); },
-						onDeselect: resetBg,
+						hasValue: function () { return hasColor( textColor ); },
+						onDeselect: resetText,
 						panelId: 'uf-proposed-colors',
-					}, el( ColorRow, { label: 'Background', color: bgColor, onChange: setBgColor } ) )
-					: null
+					}, el( ColorRow, { label: 'Text', color: textColor, onChange: setTextColor } ) ),
+
+					isFilled
+						? el( ToolsPanelItem, {
+							label: 'Background',
+							isShownByDefault: true,
+							hasValue: function () { return hasColor( bgColor ); },
+							onDeselect: resetBg,
+							panelId: 'uf-proposed-colors',
+						}, el( ColorRow, { label: 'Background', color: bgColor, onChange: setBgColor } ) )
+						: null
+				)
 			),
 
 			Rule(),

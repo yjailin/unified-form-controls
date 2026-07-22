@@ -37,6 +37,18 @@
 	grid-column: 1 / -1;
 	margin: 0;
 }
+/* Colors panel: the bordered/separated ItemGroup card is the direct grid child,
+   so span it full width. The ToolsPanelItems live INSIDE the card (one per row)
+   purely for the reset menu — strip their grid placement and margins so the
+   ItemGroup's own border and row separators define the rows, exactly as before
+   the panel gained its reset menu. */
+.ufc-proposed .ufc-proposed__panel--colors > .components-item-group {
+	grid-column: 1 / -1;
+}
+.ufc-proposed .ufc-proposed__panel--colors .components-item-group .components-tools-panel-item {
+	grid-column: auto;
+	margin: 0;
+}
 /* The panel header (its "Colors" / "Fields" label + three-dot menu) sits flush
    with the rows now that the panel padding is gone. */
 .ufc-proposed .ufc-proposed__panel > .components-tools-panel-header {
