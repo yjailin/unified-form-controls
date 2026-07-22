@@ -1718,23 +1718,23 @@
 			appearance: none;
 			-webkit-appearance: none;
 			-moz-appearance: none;
-			/* content-box so the border grows OUTWARD (like the text fields'
-			   outset ring) instead of eating into the box: the content area — and
-			   with it the ::after checkmark / radio dot, which are positioned to
-			   `inset: 0` (the padding box) — stays a fixed 1em at any border
-			   width. With the default border-box, a thicker border shrank the
-			   inner box and clipped the mark. */
-			box-sizing: content-box;
 			width: 1em;
 			height: 1em;
 			line-height: inherit;
 			margin: calc((1lh - 1em) / 2) 0 0;
 			flex: 0 0 auto;
 			background: transparent;
-			/* Track the field border width, but never below 1px: a checkbox /
-			   radio with no outline would be invisible, so it keeps a hairline
-			   even when the field border is set to 0. */
-			border: max(1px, var(--uf-field-border-width)) solid var(--uf-field-border);
+			/* The outline is an OUTSET box-shadow ring, not a real border. A real
+			   border grew inward and clipped the ::after checkmark / radio dot
+			   (both inset:0 of the box); content-box fixes that but grows the
+			   box's LAYOUT footprint, which pushed the label right so labels no
+			   longer lined up across a row. An outset shadow paints OUTSIDE the
+			   box with zero layout cost: the box stays a fixed 1em (mark intact,
+			   label position fixed) and the ring grows outward from the box's
+			   centre. Never below 1px, so a 0-width field border still leaves the
+			   control visible. */
+			border: 0;
+			box-shadow: 0 0 0 max(1px, var(--uf-field-border-width)) var(--uf-field-border);
 			color: var(--uf-field-text);
 			font-size: var(--uf-field-font-size);
 			position: relative;
@@ -1758,22 +1758,14 @@
 			outline: 1px solid var(--uf-field-border);
 			outline-offset: 0.15em;
 		}
-		/* Hover: beef the 1px border up to a 2px visual stroke via a 1px
-		   outside ring, matching the hover feel of text fields. Uses an
-		   outside ring (not an inset) so the effect is visible on checked
-		   states too — when the control is filled there's no inside for
-		   an inset shadow to show. */
-		.uf-check input[type="checkbox"]:hover,
-		.uf-radio input[type="radio"]:hover {
-			box-shadow: 0 0 0 1px var(--uf-field-border);
-		}
-
 		/* Checkbox — selected: filled with a checkmark. Check glyph color
 		   is hardcoded to the page base until we move to a mask-image in
 		   the plugin (same treatment as the select chevron). */
 		.uf-check input[type="checkbox"]:checked {
 			background-color: var(--uf-field-text);
-			border-color: var(--uf-field-text);
+			/* Ring colour follows the fill so it disappears into the filled box
+			   (the border colour can differ from the text colour when set). */
+			box-shadow: 0 0 0 max(1px, var(--uf-field-border-width)) var(--uf-field-text);
 		}
 		.uf-check input[type="checkbox"]:checked::after {
 			content: "";
@@ -1806,6 +1798,16 @@
 			height: 0.5em;
 			background-color: var(--uf-field-text);
 			border-radius: 50%;
+		}
+
+		/* Hover: beef the ring up to ~2× (min 2px) for the same "beef up"
+		   feedback the text fields get. Same outset ring, so it shows on checked
+		   states too (the fill has no inside for an inset ring). Placed AFTER the
+		   :checked rules so a checked control still gets hover feedback — the
+		   checked rule recolours the ring to the fill, this re-thickens it. */
+		.uf-check input[type="checkbox"]:hover,
+		.uf-radio input[type="radio"]:hover {
+			box-shadow: 0 0 0 max(2px, calc(var(--uf-field-border-width) * 2)) var(--uf-field-border);
 		}
 
 		/* Disabled: dim the whole row so the label gets the same treatment. */
