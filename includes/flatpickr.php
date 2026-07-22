@@ -57,7 +57,15 @@ function ufc_enqueue_flatpickr() {
 			   thing (numbers, arrows, borders, day hover, selected day) follows the
 			   field TEXT colour; the selected-day number uses the background colour
 			   for contrast. */
-			--_cal-text: var(--wp--custom--field--text, currentColor);
+			/* Resolve to a CONCRETE default text colour (the theme's contrast
+			   preset), not `currentColor`. The selected-day rule paints
+			   `background: var(--_cal-text)`; if that stays `currentColor` it
+			   resolves against the cell's OWN color — which the same rule sets to
+			   --_cal-bg — so background and number both collapse to the base
+			   colour and the selected day vanishes when no text colour is set.
+			   Contrast matches the inherited currentColor here, so numbers/borders
+			   are unchanged; currentColor stays as the last-resort fallback. */
+			--_cal-text: var(--wp--custom--field--text, var(--wp--preset--color--contrast, currentColor));
 			--_cal-bg: var(--wp--custom--field--fill, var(--wp--preset--color--base));
 			/* Border colour (popover edge + day-hover outline) follows the field
 			   BORDER colour, falling back to the text colour when unset. */
