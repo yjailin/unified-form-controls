@@ -1174,13 +1174,14 @@
 		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"][data-fill="unfilled"] :is(.uf-stepper, .wc-block-cart-items .wc-block-components-quantity-selector, .wc-block-mini-cart-items .wc-block-components-quantity-selector, form.cart .wc-block-components-quantity-selector) {
 			border-radius: 0 !important;
 		}
-		/* Underline stepper hover/focus: keep the emphasis on the bottom
-		   edge only, matching the underline treatment of inputs. Without
-		   this, the default inset box-shadow paints a full outline and
-		   breaks the underline illusion. */
+		/* Underline stepper hover/focus: emphasis on the bottom edge only,
+		   matching the field's underline treatment. The resting bottom edge is
+		   the stepper's real 1×border-width border; this adds a 1px inset line on
+		   top of it, so the stroke reads as border-width + 1px — the same "+1px,
+		   not doubled" the fields use. Border colour, to match. */
 		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] :is(.uf-stepper, .wc-block-cart-items .wc-block-components-quantity-selector, .wc-block-mini-cart-items .wc-block-components-quantity-selector, form.cart .wc-block-components-quantity-selector):hover,
 		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] :is(.uf-stepper, .wc-block-cart-items .wc-block-components-quantity-selector, .wc-block-mini-cart-items .wc-block-components-quantity-selector, form.cart .wc-block-components-quantity-selector):focus-within {
-			box-shadow: inset 0 -1px 0 0 currentColor;
+			box-shadow: inset 0 -1px 0 0 var(--uf-field-border);
 		}
 		/* Underline + Unfilled stepper: shove the − to the left edge and the
 		   + to the right edge so the icons align with the underline ends,
@@ -2108,13 +2109,10 @@
 		.wc-block-cart-items .wc-block-components-quantity-selector {
 			margin-block-start: 1rem !important;
 		}
-		/* Wrapper hover/focus indicator: Showcase only. The WC variants
-		   intentionally have NO wrapper-level hover or focus indicator
-		   (the buttons' transform-scale animation is the feedback). */
-		.uf-stepper:hover,
-		.uf-stepper:focus-within {
-			box-shadow: inset 0 0 0 1px currentColor;
-		}
+		/* Wrapper hover/focus indicator: the detached outline ring (added with
+		   the fields, above) is the feedback now — no inner box-shadow ring, so
+		   the stepper matches a field (border unchanged + 1px ring 1px outside).
+		   The old inner `inset 0 0 0 1px` ring was removed. */
 		/* Border variants — mirror what `.uf-field--float` does per
 		   `data-border`. Underline keeps only the bottom edge; None
 		   drops the border entirely and uses a subtle fill on hover/focus.
@@ -2126,10 +2124,9 @@
 			border-right-color: transparent !important;
 			border-radius: 0 !important;
 		}
-		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] :is(.uf-stepper, .wc-block-cart-items .wc-block-components-quantity-selector, .wc-block-mini-cart-items .wc-block-components-quantity-selector, form.cart .wc-block-components-quantity-selector):hover,
-		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] :is(.uf-stepper, .wc-block-cart-items .wc-block-components-quantity-selector, .wc-block-mini-cart-items .wc-block-components-quantity-selector, form.cart .wc-block-components-quantity-selector):focus-within {
-			box-shadow: none;
-		}
+		/* (No box-shadow:none override here anymore — the inner ring it used to
+		   cancel is gone. The underline hover bottom-line rule above now stands,
+		   giving the stepper the field's +1px underline treatment.) */
 		:is(.uf-showcase, .uf-checkout, body)[data-border="none"] .uf-stepper {
 			border-color: transparent !important;
 		}
