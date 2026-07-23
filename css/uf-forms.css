@@ -655,18 +655,17 @@
 		}
 
 		/* ===== Active/Focus ring — TEXTAREAS ONLY =======================
-		   On a textarea, the "active" state — HOVER, FOCUS, or filled (something
-		   typed in, :not(:placeholder-shown)) — keeps the textarea's own border
+		   On a textarea, HOVER or FOCUS (typing) keeps the textarea's own border
 		   exactly as it is (its resting box-shadow ring) and draws a separate 1px
 		   ring 1px OUTSIDE it: an `outline` (painted outside the box → zero layout
-		   cost) with a 1px `outline-offset` for the empty gap. The box-shadow is
-		   re-pinned to the resting ring to undo the shared hover/focus doubling
-		   (uf-tokens.css). Text inputs, selects, toggle-group and the date/time
-		   pickers are untouched. Specificity (0,3,1) beats the shared rule
-		   (0,2,1). */
+		   cost) with a 1px `outline-offset` for the empty gap. It is NOT shown at
+		   rest — including a blurred textarea that has a value — so there is no
+		   `:not(:placeholder-shown)` trigger here. The box-shadow is re-pinned to
+		   the resting ring to undo the shared hover/focus doubling (uf-tokens.css).
+		   Text inputs, selects, toggle-group and the date/time pickers are
+		   untouched. Specificity (0,3,1) beats the shared rule (0,2,1). */
 		:is(.uf-showcase, .uf-checkout, body) .uf-field--float textarea:hover,
 		:is(.uf-showcase, .uf-checkout, body) .uf-field--float textarea:focus,
-		:is(.uf-showcase, .uf-checkout, body) .uf-field--float textarea:not(:placeholder-shown),
 		:is(.uf-showcase, .uf-checkout, body) .uf-field--float.uf-is-focused textarea {
 			box-shadow: var(--_uf-field-ring), var(--uf-field-shadow, 0 0 transparent) !important;
 			outline: 1px solid var(--uf-field-border) !important;
@@ -675,7 +674,6 @@
 		/* Error textarea: same detached ring, in the error colour. */
 		:is(.uf-showcase, .uf-checkout, body) .uf-field--float.uf-has-error textarea:hover,
 		:is(.uf-showcase, .uf-checkout, body) .uf-field--float.uf-has-error textarea:focus,
-		:is(.uf-showcase, .uf-checkout, body) .uf-field--float.uf-has-error textarea:not(:placeholder-shown),
 		:is(.uf-showcase, .uf-checkout, body) .uf-field--float.uf-has-error.uf-is-focused textarea {
 			outline-color: var(--uf-field-error) !important;
 		}
