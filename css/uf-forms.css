@@ -657,32 +657,43 @@
 		/* ============================================================
 		   REUSABLE: active/focus ring  (box border styles only)
 		   ------------------------------------------------------------
-		   The hover/focus treatment currently used ONLY by textareas:
-		   the control keeps its resting border (box-shadow re-pinned to
-		   --_uf-field-ring, which undoes the shared hover/focus doubling
-		   in uf-tokens.css) and gains a detached 1px `outline` sitting
-		   1px OUTSIDE the border (the empty gap). Error fields ring in
-		   the error colour. Shown only on hover/focus, never at rest.
+		   The hover/focus treatment: the control keeps its resting border
+		   (box-shadow re-pinned to --_uf-field-ring, which undoes the
+		   shared hover/focus doubling in uf-tokens.css) and gains a
+		   detached 1px `outline` sitting 1px OUTSIDE the border (the empty
+		   gap). Error fields ring in the error colour. Shown only on
+		   hover/focus, never at rest.
 
-		   OPT-IN: a control type inherits this ring by being added to the
-		   `:is( … )` list, which appears in FOUR spots below — normal and
-		   error, each x { interactive (:hover/:focus), demo (.uf-is-focused) }.
-		   Keep the four lists in sync. Only `textarea` is opted in for
-		   now; do NOT add others yet.
+		   OPT-IN: the `:is( … )` list of control types, matched as DIRECT
+		   children of .uf-field--float so nested composites (the quantity
+		   stepper's inner input) don't match — the stepper gets the ring on
+		   its wrapper instead (rule below). The list appears in FOUR spots
+		   — normal and error, each x { interactive, demo (.uf-is-focused) };
+		   keep them in sync. Opted in: input, select, textarea.
 
 		   Excluded under [data-border="underline"] (that variant thickens
 		   the underline instead — its own rules below are left untouched).
 		   Specificity (0,4,1) beats the shared hover/focus rule (0,2,1). */
-		:is(.uf-showcase, .uf-checkout, body):not([data-border="underline"]) .uf-field--float :is( textarea ):is(:hover, :focus),
-		:is(.uf-showcase, .uf-checkout, body):not([data-border="underline"]) .uf-field--float.uf-is-focused :is( textarea ) {
+		:is(.uf-showcase, .uf-checkout, body):not([data-border="underline"]) .uf-field--float > :is( input, select, textarea ):is(:hover, :focus),
+		:is(.uf-showcase, .uf-checkout, body):not([data-border="underline"]) .uf-field--float.uf-is-focused > :is( input, select, textarea ) {
 			box-shadow: var(--_uf-field-ring), var(--uf-field-shadow, 0 0 transparent) !important;
 			outline: 1px solid var(--uf-field-border) !important;
 			outline-offset: 1px !important;
 		}
 		/* Error variant — same opt-in list, ring in the error colour. */
-		:is(.uf-showcase, .uf-checkout, body):not([data-border="underline"]) .uf-field--float.uf-has-error :is( textarea ):is(:hover, :focus),
-		:is(.uf-showcase, .uf-checkout, body):not([data-border="underline"]) .uf-field--float.uf-has-error.uf-is-focused :is( textarea ) {
+		:is(.uf-showcase, .uf-checkout, body):not([data-border="underline"]) .uf-field--float.uf-has-error > :is( input, select, textarea ):is(:hover, :focus),
+		:is(.uf-showcase, .uf-checkout, body):not([data-border="underline"]) .uf-field--float.uf-has-error.uf-is-focused > :is( input, select, textarea ) {
 			outline-color: var(--uf-field-error) !important;
+		}
+		/* Stepper: give the SAME detached ring to the whole wrapper on hover /
+		   focus-within (its inner input is excluded from the field rule above by
+		   the direct-child combinator). The stepper keeps its own real border;
+		   only the outline is added. Covers the showcase stepper and the WC
+		   quantity selectors it mirrors. Non-underline only. */
+		:is(.uf-showcase, .uf-checkout, body):not([data-border="underline"]) :is(.uf-stepper, .wc-block-cart-items .wc-block-components-quantity-selector, .wc-block-mini-cart-items .wc-block-components-quantity-selector, form.cart .wc-block-components-quantity-selector):hover,
+		:is(.uf-showcase, .uf-checkout, body):not([data-border="underline"]) :is(.uf-stepper, .wc-block-cart-items .wc-block-components-quantity-selector, .wc-block-mini-cart-items .wc-block-components-quantity-selector, form.cart .wc-block-components-quantity-selector):focus-within {
+			outline: 1px solid var(--uf-field-border) !important;
+			outline-offset: 1px !important;
 		}
 		/* Underline textarea: NO ring — thicken the bottom line by 1px on
 		   hover/focus instead. */
