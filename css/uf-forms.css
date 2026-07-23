@@ -634,14 +634,6 @@
 		.uf-field.uf-has-error > label {
 			color: var(--uf-field-error) !important;
 		}
-		/* Error hover: the 2px stroke also uses the error color so the field
-		   stays visually "in error". Focus is handled by the focus-ring rules
-		   below (which draw the detached ring in the error colour). */
-		.uf-showcase .uf-field.uf-has-error input:hover:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
-		.uf-showcase .uf-field.uf-has-error select:hover,
-		.uf-showcase .uf-field.uf-has-error textarea:hover {
-			box-shadow: inset 0 0 0 calc(var(--uf-field-border-width) * 2) var(--uf-field-error), var(--uf-field-shadow, 0 0 transparent) !important;
-		}
 		/* Showcase-only: force a focus-looking state for the "Focused" demo
 		   without relying on autofocus (which scrolls the page on load). The
 		   focus-ring rules below override this (higher specificity) so the demo
@@ -653,20 +645,27 @@
 			outline: none !important;
 		}
 
-		/* ===== Focus ring — detached outline, does NOT thicken the border =====
-		   On focus the field's own border stays exactly as it is (its resting
-		   box-shadow ring), and a separate 1px ring is drawn 1px OUTSIDE it: an
-		   `outline` (painted outside the box, so zero layout cost and no effect
-		   on the underline layout) with a 1px `outline-offset` for the empty gap.
+		/* ===== Active/Focus ring — detached outline, never thickens the border =
+		   The "active" state — HOVER, FOCUS, or a filled field (something typed
+		   in, `:not(:placeholder-shown)`) — keeps the field's own border exactly
+		   as it is (its resting box-shadow ring) and draws a separate 1px ring
+		   1px OUTSIDE it: an `outline` (painted outside the box → zero layout
+		   cost, no effect on the underline layout) with a 1px `outline-offset`
+		   for the empty gap. Selects fire on hover/focus only (they always carry
+		   a value, so `:not(:placeholder-shown)` would make the ring permanent).
 		   Applies to every text-like field / textarea / field-with-control (all
-		   are .uf-field--float) in any border style; toggle-group and the date/
-		   time pickers are not .uf-field--float, so they're untouched. The
-		   box-shadow is re-pinned to the resting ring here to undo the shared
-		   hover/focus doubling (uf-tokens.css) on focus. Specificity (0,3,1)
-		   beats that rule (0,2,1). */
+		   .uf-field--float) in any border style; toggle-group and the date/time
+		   pickers are not .uf-field--float, so they're untouched. The box-shadow
+		   is re-pinned to the resting ring to undo the shared hover/focus doubling
+		   (uf-tokens.css). Specificity (0,3,1) beats that rule (0,2,1). */
+		:is(.uf-showcase, .uf-checkout, body) .uf-field--float input:hover,
 		:is(.uf-showcase, .uf-checkout, body) .uf-field--float input:focus,
-		:is(.uf-showcase, .uf-checkout, body) .uf-field--float select:focus,
+		:is(.uf-showcase, .uf-checkout, body) .uf-field--float input:not(:placeholder-shown),
+		:is(.uf-showcase, .uf-checkout, body) .uf-field--float textarea:hover,
 		:is(.uf-showcase, .uf-checkout, body) .uf-field--float textarea:focus,
+		:is(.uf-showcase, .uf-checkout, body) .uf-field--float textarea:not(:placeholder-shown),
+		:is(.uf-showcase, .uf-checkout, body) .uf-field--float select:hover,
+		:is(.uf-showcase, .uf-checkout, body) .uf-field--float select:focus,
 		:is(.uf-showcase, .uf-checkout, body) .uf-field--float.uf-is-focused input,
 		:is(.uf-showcase, .uf-checkout, body) .uf-field--float.uf-is-focused select,
 		:is(.uf-showcase, .uf-checkout, body) .uf-field--float.uf-is-focused textarea {
@@ -675,9 +674,14 @@
 			outline-offset: 1px !important;
 		}
 		/* Error field: same detached ring, in the error colour. */
+		:is(.uf-showcase, .uf-checkout, body) .uf-field--float.uf-has-error input:hover,
 		:is(.uf-showcase, .uf-checkout, body) .uf-field--float.uf-has-error input:focus,
-		:is(.uf-showcase, .uf-checkout, body) .uf-field--float.uf-has-error select:focus,
+		:is(.uf-showcase, .uf-checkout, body) .uf-field--float.uf-has-error input:not(:placeholder-shown),
+		:is(.uf-showcase, .uf-checkout, body) .uf-field--float.uf-has-error textarea:hover,
 		:is(.uf-showcase, .uf-checkout, body) .uf-field--float.uf-has-error textarea:focus,
+		:is(.uf-showcase, .uf-checkout, body) .uf-field--float.uf-has-error textarea:not(:placeholder-shown),
+		:is(.uf-showcase, .uf-checkout, body) .uf-field--float.uf-has-error select:hover,
+		:is(.uf-showcase, .uf-checkout, body) .uf-field--float.uf-has-error select:focus,
 		:is(.uf-showcase, .uf-checkout, body) .uf-field--float.uf-has-error.uf-is-focused input,
 		:is(.uf-showcase, .uf-checkout, body) .uf-field--float.uf-has-error.uf-is-focused select,
 		:is(.uf-showcase, .uf-checkout, body) .uf-field--float.uf-has-error.uf-is-focused textarea {
