@@ -356,6 +356,11 @@
 		frame.appendChild( iframe );
 		preview.appendChild( frame );
 		document.body.appendChild( preview );
+		// Flag the body so the CSS can neutralise the native canvas frame's own
+		// border/box-shadow/outline while our dark overlay is covering it. Newer
+		// WP versions draw that device-frame decoration OUTSIDE the anchor rect
+		// our overlay is sized to, so it leaks around the edge as a white frame.
+		document.body.classList.add( 'ufc-se-preview-active' );
 		state.preview = preview;
 		state.iframe  = iframe;
 
@@ -419,6 +424,8 @@
 			if ( overlay && overlay.parentNode ) { overlay.parentNode.removeChild( overlay ); }
 			if ( preview && preview.parentNode ) { preview.parentNode.removeChild( preview ); }
 			if ( rootScreen ) { rootScreen.classList.remove( 'ufc-anim-root-in' ); }
+			// Restore the native canvas frame decoration for the root Styles view.
+			document.body.classList.remove( 'ufc-se-preview-active' );
 		}
 
 		// Back-navigation transition (matches clicking Back): our panel slides

@@ -80,6 +80,22 @@
 	}
 }
 
+/* Neutralise the native canvas "device frame" decoration while our dark
+   overlay is covering the canvas. Newer WP versions draw a border /
+   box-shadow / outline on the resizable-frame element to make the canvas
+   look like a framed device; that decoration renders OUTSIDE the anchor rect
+   our overlay is sized to, so it leaks around our preview as a white frame
+   (dev's older WP didn't draw it). Our own .ufc-se-preview__frame already
+   provides the rounded frame + soft shadow, so removing the native one loses
+   nothing. Scoped to the active state so the root Styles view keeps its
+   native frame. */
+body.ufc-se-preview-active .edit-site-resizable-frame__inner,
+body.ufc-se-preview-active .edit-site-resizable-frame__inner-content {
+	border: 0 !important;
+	box-shadow: none !important;
+	outline: none !important;
+}
+
 /* Live preview pinned over the native canvas. Padding gives the dark
    surround that insets the framed preview on all four sides. Dark background
    so nothing white shows behind the iframe. */
