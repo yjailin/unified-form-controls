@@ -654,28 +654,49 @@
 			outline: none !important;
 		}
 
-		/* ===== Active/Focus ring — TEXTAREAS ONLY =======================
-		   On a textarea, HOVER or FOCUS (typing) keeps the textarea's own border
-		   exactly as it is (its resting box-shadow ring) and draws a separate 1px
-		   ring 1px OUTSIDE it: an `outline` (painted outside the box → zero layout
-		   cost) with a 1px `outline-offset` for the empty gap. It is NOT shown at
-		   rest — including a blurred textarea that has a value — so there is no
-		   `:not(:placeholder-shown)` trigger here. The box-shadow is re-pinned to
-		   the resting ring to undo the shared hover/focus doubling (uf-tokens.css).
-		   Text inputs, selects, toggle-group and the date/time pickers are
-		   untouched. Specificity (0,3,1) beats the shared rule (0,2,1). */
-		:is(.uf-showcase, .uf-checkout, body) .uf-field--float textarea:hover,
-		:is(.uf-showcase, .uf-checkout, body) .uf-field--float textarea:focus,
-		:is(.uf-showcase, .uf-checkout, body) .uf-field--float.uf-is-focused textarea {
+		/* ===== Active/Focus ring — TEXTAREAS, box borders (NOT underline) ====
+		   On a textarea with a box border, HOVER or FOCUS keeps the textarea's own
+		   border exactly as it is and draws a separate 1px ring 1px OUTSIDE it
+		   (`outline` + 1px `outline-offset`). Only on hover/focus — never at rest,
+		   even when it has a value. The box-shadow is re-pinned to the resting ring
+		   to undo the shared hover/focus doubling (uf-tokens.css). Text inputs,
+		   selects, toggle-group and the date/time pickers are untouched. Under
+		   [data-border="underline"] the ring is suppressed and the underline
+		   thickens instead (below). Specificity (0,3,1) beats the shared rule. */
+		:is(.uf-showcase, .uf-checkout, body):not([data-border="underline"]) .uf-field--float textarea:hover,
+		:is(.uf-showcase, .uf-checkout, body):not([data-border="underline"]) .uf-field--float textarea:focus,
+		:is(.uf-showcase, .uf-checkout, body):not([data-border="underline"]) .uf-field--float.uf-is-focused textarea {
 			box-shadow: var(--_uf-field-ring), var(--uf-field-shadow, 0 0 transparent) !important;
 			outline: 1px solid var(--uf-field-border) !important;
 			outline-offset: 1px !important;
 		}
-		/* Error textarea: same detached ring, in the error colour. */
-		:is(.uf-showcase, .uf-checkout, body) .uf-field--float.uf-has-error textarea:hover,
-		:is(.uf-showcase, .uf-checkout, body) .uf-field--float.uf-has-error textarea:focus,
-		:is(.uf-showcase, .uf-checkout, body) .uf-field--float.uf-has-error.uf-is-focused textarea {
+		/* Error textarea (box border): ring in the error colour. */
+		:is(.uf-showcase, .uf-checkout, body):not([data-border="underline"]) .uf-field--float.uf-has-error textarea:hover,
+		:is(.uf-showcase, .uf-checkout, body):not([data-border="underline"]) .uf-field--float.uf-has-error textarea:focus,
+		:is(.uf-showcase, .uf-checkout, body):not([data-border="underline"]) .uf-field--float.uf-has-error.uf-is-focused textarea {
 			outline-color: var(--uf-field-error) !important;
+		}
+		/* Underline textarea: NO ring — thicken the bottom line by 1px on
+		   hover/focus instead. */
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] .uf-field--float textarea:hover,
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] .uf-field--float textarea:focus,
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] .uf-field--float.uf-is-focused textarea {
+			box-shadow: inset 0 calc(-1 * (var(--uf-field-border-width) + 1px)) 0 0 var(--uf-field-border), var(--uf-field-shadow, 0 0 transparent) !important;
+			outline: none !important;
+		}
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] .uf-field--float.uf-has-error textarea:hover,
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] .uf-field--float.uf-has-error textarea:focus,
+		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] .uf-field--float.uf-has-error.uf-is-focused textarea {
+			box-shadow: inset 0 calc(-1 * (var(--uf-field-border-width) + 1px)) 0 0 var(--uf-field-error), var(--uf-field-shadow, 0 0 transparent) !important;
+		}
+		/* Disabled / readonly: no HOVER feedback. Pin to the resting ring with no
+		   outline on hover — overrides the textarea ring, the underline
+		   thickening, AND the shared hover doubling (uf-tokens.css) for
+		   inputs/selects/textareas alike. Focus is left intact so a readonly field
+		   still shows where the keyboard is. */
+		:is(.uf-showcase, .uf-checkout, body) .uf-field.uf-field--float :is(input, select, textarea):is([readonly], :disabled):hover {
+			box-shadow: var(--_uf-field-ring), var(--uf-field-shadow, 0 0 transparent) !important;
+			outline: none !important;
 		}
 
 		/* ------- Floating-label pattern (Checkout-style) -------------------
