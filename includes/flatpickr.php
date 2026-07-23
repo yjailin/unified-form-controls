@@ -97,11 +97,13 @@ function ufc_enqueue_flatpickr() {
 			padding: 12px !important;
 		}
 		/* Inline mode (showcase): the calendar sits in normal page flow,
-		   not floating above content. Drop the popover-only treatments
-		   (shadow, auto-centering) so the calendar's left edge aligns
-		   with its section heading. */
+		   not floating above content. Drop the popover-only auto-centering, and
+		   swap the hard-coded popover shadow for the field Shadow setting
+		   (--uf-field-shadow, set on <body> by the bridge) so the single-day and
+		   date-range calendars carry the same drop shadow as the fields — or none
+		   when the setting is unset. */
 		.flatpickr-calendar.inline {
-			box-shadow: none !important;
+			box-shadow: var(--uf-field-shadow, none) !important;
 			margin: 0 !important;
 			display: block !important;
 		}

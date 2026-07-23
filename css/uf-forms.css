@@ -1181,7 +1181,7 @@
 		   not doubled" the fields use. Border colour, to match. */
 		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] :is(.uf-stepper, .wc-block-cart-items .wc-block-components-quantity-selector, .wc-block-mini-cart-items .wc-block-components-quantity-selector, form.cart .wc-block-components-quantity-selector):hover,
 		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] :is(.uf-stepper, .wc-block-cart-items .wc-block-components-quantity-selector, .wc-block-mini-cart-items .wc-block-components-quantity-selector, form.cart .wc-block-components-quantity-selector):focus-within {
-			box-shadow: inset 0 -1px 0 0 var(--uf-field-border);
+			box-shadow: inset 0 -1px 0 0 var(--uf-field-border), var(--uf-field-shadow, 0 0 transparent);
 		}
 		/* Underline + Unfilled stepper: shove the − to the left edge and the
 		   + to the right edge so the icons align with the underline ends,
@@ -2079,6 +2079,10 @@
 			width: var(--uf-stepper-wrapper-width) !important;
 			box-sizing: border-box !important;
 			overflow: hidden !important;
+			/* Carry the field drop shadow (Shadow setting) like the fields do.
+			   overflow:hidden clips content, not the element's own outset
+			   box-shadow, so the drop shadow still renders. */
+			box-shadow: var(--uf-field-shadow, 0 0 transparent) !important;
 		}
 		/* Beat the WC rule
 		   `.wp-block-woocommerce-cart .wc-block-components-quantity-selector { border-color: … !important }`
@@ -2132,7 +2136,7 @@
 		}
 		:is(.uf-showcase, .uf-checkout, body)[data-border="none"] :is(.uf-stepper, .wc-block-cart-items .wc-block-components-quantity-selector, .wc-block-mini-cart-items .wc-block-components-quantity-selector, form.cart .wc-block-components-quantity-selector):hover,
 		:is(.uf-showcase, .uf-checkout, body)[data-border="none"] :is(.uf-stepper, .wc-block-cart-items .wc-block-components-quantity-selector, .wc-block-mini-cart-items .wc-block-components-quantity-selector, form.cart .wc-block-components-quantity-selector):focus-within {
-			box-shadow: inset 0 0 0 999px color-mix(in srgb, var(--uf-field-text) 7%, transparent);
+			box-shadow: inset 0 0 0 999px color-mix(in srgb, var(--uf-field-text) 7%, transparent), var(--uf-field-shadow, 0 0 transparent);
 		}
 		.uf-stepper button,
 		.wc-block-cart-items .wc-block-components-quantity-selector__button,
