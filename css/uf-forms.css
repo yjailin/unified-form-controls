@@ -654,26 +654,34 @@
 			outline: none !important;
 		}
 
-		/* ===== Active/Focus ring — TEXTAREAS, box borders (NOT underline) ====
-		   On a textarea with a box border, HOVER or FOCUS keeps the textarea's own
-		   border exactly as it is and draws a separate 1px ring 1px OUTSIDE it
-		   (`outline` + 1px `outline-offset`). Only on hover/focus — never at rest,
-		   even when it has a value. The box-shadow is re-pinned to the resting ring
-		   to undo the shared hover/focus doubling (uf-tokens.css). Text inputs,
-		   selects, toggle-group and the date/time pickers are untouched. Under
-		   [data-border="underline"] the ring is suppressed and the underline
-		   thickens instead (below). Specificity (0,3,1) beats the shared rule. */
-		:is(.uf-showcase, .uf-checkout, body):not([data-border="underline"]) .uf-field--float textarea:hover,
-		:is(.uf-showcase, .uf-checkout, body):not([data-border="underline"]) .uf-field--float textarea:focus,
-		:is(.uf-showcase, .uf-checkout, body):not([data-border="underline"]) .uf-field--float.uf-is-focused textarea {
+		/* ============================================================
+		   REUSABLE: active/focus ring  (box border styles only)
+		   ------------------------------------------------------------
+		   The hover/focus treatment currently used ONLY by textareas:
+		   the control keeps its resting border (box-shadow re-pinned to
+		   --_uf-field-ring, which undoes the shared hover/focus doubling
+		   in uf-tokens.css) and gains a detached 1px `outline` sitting
+		   1px OUTSIDE the border (the empty gap). Error fields ring in
+		   the error colour. Shown only on hover/focus, never at rest.
+
+		   OPT-IN: a control type inherits this ring by being added to the
+		   `:is( … )` list, which appears in FOUR spots below — normal and
+		   error, each x { interactive (:hover/:focus), demo (.uf-is-focused) }.
+		   Keep the four lists in sync. Only `textarea` is opted in for
+		   now; do NOT add others yet.
+
+		   Excluded under [data-border="underline"] (that variant thickens
+		   the underline instead — its own rules below are left untouched).
+		   Specificity (0,4,1) beats the shared hover/focus rule (0,2,1). */
+		:is(.uf-showcase, .uf-checkout, body):not([data-border="underline"]) .uf-field--float :is( textarea ):is(:hover, :focus),
+		:is(.uf-showcase, .uf-checkout, body):not([data-border="underline"]) .uf-field--float.uf-is-focused :is( textarea ) {
 			box-shadow: var(--_uf-field-ring), var(--uf-field-shadow, 0 0 transparent) !important;
 			outline: 1px solid var(--uf-field-border) !important;
 			outline-offset: 1px !important;
 		}
-		/* Error textarea (box border): ring in the error colour. */
-		:is(.uf-showcase, .uf-checkout, body):not([data-border="underline"]) .uf-field--float.uf-has-error textarea:hover,
-		:is(.uf-showcase, .uf-checkout, body):not([data-border="underline"]) .uf-field--float.uf-has-error textarea:focus,
-		:is(.uf-showcase, .uf-checkout, body):not([data-border="underline"]) .uf-field--float.uf-has-error.uf-is-focused textarea {
+		/* Error variant — same opt-in list, ring in the error colour. */
+		:is(.uf-showcase, .uf-checkout, body):not([data-border="underline"]) .uf-field--float.uf-has-error :is( textarea ):is(:hover, :focus),
+		:is(.uf-showcase, .uf-checkout, body):not([data-border="underline"]) .uf-field--float.uf-has-error.uf-is-focused :is( textarea ) {
 			outline-color: var(--uf-field-error) !important;
 		}
 		/* Underline textarea: NO ring — thicken the bottom line by 1px on
