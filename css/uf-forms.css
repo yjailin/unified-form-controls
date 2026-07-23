@@ -1117,9 +1117,9 @@
 		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] .uf-field--float select:focus,
 		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] .uf-field--float textarea:hover,
 		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] .uf-field--float textarea:focus {
-			/* Bottom-only ring, doubled on hover/focus to match the outline
-			   beef-up, and tracking the border width (was a hardcoded 1px). */
-			box-shadow: inset 0 calc(var(--uf-field-border-width) * -2) 0 0 var(--uf-field-border), var(--uf-field-shadow, 0 0 transparent) !important;
+			/* Bottom-only ring, thickened by 1px on hover/focus (not doubled),
+			   tracking the border width. */
+			box-shadow: inset 0 calc(-1 * (var(--uf-field-border-width) + 1px)) 0 0 var(--uf-field-border), var(--uf-field-shadow, 0 0 transparent) !important;
 		}
 
 		/* Underline + Unfilled: no visible side edges → side padding becomes
