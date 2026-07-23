@@ -333,6 +333,12 @@
 
 		var iframe = document.createElement( 'iframe' );
 		iframe.className = 'ufc-se-iframe';
+		// Zero the border inline (not only via the stylesheet). If
+		// site-editor-styles-panel.css doesn't win/load in a given install, the
+		// browser's default 2px iframe border would otherwise show as a white
+		// frame around the preview. `frameBorder` covers older engines.
+		iframe.style.border = '0';
+		iframe.setAttribute( 'frameBorder', '0' );
 		iframe.src = previewUrlFor( state.variationSlug );
 		iframe.style.left   = ( -PANEL_W ) + 'px';
 		iframe.style.top    = ( -TOPBAR_H ) + 'px';

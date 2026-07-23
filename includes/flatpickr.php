@@ -106,6 +106,24 @@ function ufc_enqueue_flatpickr() {
 			box-shadow: var(--uf-field-shadow, none) !important;
 			margin: 0 !important;
 			display: block !important;
+			/* Flex to the container width instead of the fixed 334px min-width
+			   (which overflowed narrow preview columns). The day grid below is
+			   made fluid to match. */
+			min-width: 0 !important;
+			width: 100% !important;
+			max-width: 100% !important;
+		}
+		/* Fluid day grid for inline calendars — mirrors the booking-modal grid so
+		   the 7 columns share the available width instead of a fixed 307px. */
+		.flatpickr-calendar.inline .flatpickr-days,
+		.flatpickr-calendar.inline .flatpickr-weekdaycontainer,
+		.flatpickr-calendar.inline .flatpickr-rContainer {
+			width: 100% !important;
+		}
+		.flatpickr-calendar.inline .dayContainer {
+			min-width: 0 !important;
+			max-width: 100% !important;
+			width: 100% !important;
 		}
 		/* Hide Flatpickr's tip/caret pseudo-elements. By default Flatpickr
 		   draws a small triangle on the top (or bottom) edge that points
