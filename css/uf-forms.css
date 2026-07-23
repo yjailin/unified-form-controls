@@ -1943,6 +1943,10 @@
 			overflow: hidden;
 			padding: 4px;
 			gap: 0;
+			/* Carry the field drop shadow (Shadow setting) like the other
+			   surfaces. overflow:hidden clips content, not the element's own
+			   outset shadow, so the drop shadow still renders. */
+			box-shadow: var(--uf-field-shadow, 0 0 transparent);
 		}
 		.uf-toggle-group__option {
 			position: relative;
