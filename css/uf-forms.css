@@ -673,16 +673,21 @@
 
 		   Excluded under [data-border="underline"] (that variant thickens
 		   the underline instead — its own rules below are left untouched).
-		   Specificity (0,4,1) beats the shared hover/focus rule (0,2,1). */
-		:is(.uf-showcase, .uf-checkout, body):not([data-border="underline"]) .uf-field--float > :is( input, select, textarea ):is(:hover, :focus),
-		:is(.uf-showcase, .uf-checkout, body):not([data-border="underline"]) .uf-field--float.uf-is-focused > :is( input, select, textarea ) {
+		   The `:not([type=…])` chain on the opt-in list is NOT a filter (it
+		   never excludes text inputs / select / textarea) — it mirrors the
+		   shared input hover/focus rule in uf-tokens.css so this rule out-
+		   specifies it: uf-tokens uses `input:hover:not×4` = (0,6,1); this
+		   is (0,9,1). Without it, only `select` (which the shared rule matches
+		   at just (0,2,1)) would win, and inputs would keep the old doubling. */
+		:is(.uf-showcase, .uf-checkout, body):not([data-border="underline"]) .uf-field--float > :is( input, select, textarea ):not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="hidden"]):is(:hover, :focus),
+		:is(.uf-showcase, .uf-checkout, body):not([data-border="underline"]) .uf-field--float.uf-is-focused > :is( input, select, textarea ):not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="hidden"]) {
 			box-shadow: var(--_uf-field-ring), var(--uf-field-shadow, 0 0 transparent) !important;
 			outline: 1px solid var(--uf-field-border) !important;
 			outline-offset: 1px !important;
 		}
 		/* Error variant — same opt-in list, ring in the error colour. */
-		:is(.uf-showcase, .uf-checkout, body):not([data-border="underline"]) .uf-field--float.uf-has-error > :is( input, select, textarea ):is(:hover, :focus),
-		:is(.uf-showcase, .uf-checkout, body):not([data-border="underline"]) .uf-field--float.uf-has-error.uf-is-focused > :is( input, select, textarea ) {
+		:is(.uf-showcase, .uf-checkout, body):not([data-border="underline"]) .uf-field--float.uf-has-error > :is( input, select, textarea ):not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="hidden"]):is(:hover, :focus),
+		:is(.uf-showcase, .uf-checkout, body):not([data-border="underline"]) .uf-field--float.uf-has-error.uf-is-focused > :is( input, select, textarea ):not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="hidden"]) {
 			outline-color: var(--uf-field-error) !important;
 		}
 		/* Stepper: give the SAME detached ring to the whole wrapper on hover /
@@ -694,6 +699,14 @@
 		:is(.uf-showcase, .uf-checkout, body):not([data-border="underline"]) :is(.uf-stepper, .wc-block-cart-items .wc-block-components-quantity-selector, .wc-block-mini-cart-items .wc-block-components-quantity-selector, form.cart .wc-block-components-quantity-selector):focus-within {
 			outline: 1px solid var(--uf-field-border) !important;
 			outline-offset: 1px !important;
+		}
+		/* …and the stepper's inner input never shows its OWN ring/doubling — the
+		   wrapper carries the state. Strip its box-shadow + outline in every
+		   interactive state. The `:not([type=…])` chain mirrors the shared input
+		   hover/focus rule so this out-specifies it (0,9,1 vs 0,6,1). */
+		:is(.uf-showcase, .uf-checkout, body) :is(.uf-stepper, .wc-block-cart-items .wc-block-components-quantity-selector, .wc-block-mini-cart-items .wc-block-components-quantity-selector, form.cart .wc-block-components-quantity-selector) input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="hidden"]):is(:hover, :focus, :focus-visible) {
+			box-shadow: none !important;
+			outline: none !important;
 		}
 		/* Underline textarea: NO ring — thicken the bottom line by 1px on
 		   hover/focus instead. */
