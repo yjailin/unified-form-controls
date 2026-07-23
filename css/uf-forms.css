@@ -689,12 +689,12 @@
 		:is(.uf-showcase, .uf-checkout, body)[data-border="underline"] .uf-field--float.uf-has-error.uf-is-focused textarea {
 			box-shadow: inset 0 calc(-1 * (var(--uf-field-border-width) + 1px)) 0 0 var(--uf-field-error), var(--uf-field-shadow, 0 0 transparent) !important;
 		}
-		/* Disabled / readonly: no HOVER feedback. Pin to the resting ring with no
-		   outline on hover — overrides the textarea ring, the underline
-		   thickening, AND the shared hover doubling (uf-tokens.css) for
-		   inputs/selects/textareas alike. Focus is left intact so a readonly field
-		   still shows where the keyboard is. */
-		:is(.uf-showcase, .uf-checkout, body) .uf-field.uf-field--float :is(input, select, textarea):is([readonly], :disabled):hover {
+		/* Disabled / readonly: NO interactive feedback — pin to the resting ring
+		   with no outline on hover AND focus. Overrides the textarea ring, the
+		   underline thickening, the shared hover/focus doubling (uf-tokens.css)
+		   and any UA focus outline, for inputs / selects / textareas alike. These
+		   fields aren't editable, so they read as static in every state. */
+		:is(.uf-showcase, .uf-checkout, body) .uf-field.uf-field--float :is(input, select, textarea):is([readonly], :disabled):is(:hover, :focus, :focus-visible) {
 			box-shadow: var(--_uf-field-ring), var(--uf-field-shadow, 0 0 transparent) !important;
 			outline: none !important;
 		}
