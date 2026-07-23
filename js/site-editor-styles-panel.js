@@ -138,16 +138,16 @@
 	}
 
 	function injectItem() {
-		makeItem( 'ufc-se-item', 'Form controls', function () { openPanel(); } );
+		makeItem( 'ufc-se-item', 'Form controls (i1)', function () { openPanel( { title: 'Form controls (i1)' } ); } );
 
 		// PROTOTYPE (side-by-side comparison): same drilldown chrome, but the
 		// body is built from the shared block-editor Global Styles panels
 		// (BorderPanel / ColorPanel) instead of our own controls. Only appears
 		// when the prototype module loaded.
 		if ( window.UFC && window.UFC.NativePanelsPrototype ) {
-			makeItem( 'ufc-se-item-proto', 'Form controls (native)', function () {
+			makeItem( 'ufc-se-item-proto', 'Form controls (settings prompt)', function () {
 				openPanel( {
-					title: 'Form controls (native)',
+					title: 'Form controls (settings prompt)',
 					description: 'Prototype — built from the shared block-editor panels.',
 					Body: window.UFC.NativePanelsPrototype,
 				} );
@@ -157,9 +157,9 @@
 		// PROPOSED design (side-by-side comparison): same drilldown chrome,
 		// body grouped by decision — Layout / Colors / Border & Shadow.
 		if ( window.UFC && window.UFC.ProposedPanel ) {
-			makeItem( 'ufc-se-item-proposed', 'Form controls (proposed)', function () {
+			makeItem( 'ufc-se-item-proposed', 'Form controls (i2)', function () {
 				openPanel( {
-					title: 'Form controls (proposed)',
+					title: 'Form controls (i2)',
 					description: 'Consistent border, fill and label styles for every form control on your site.',
 					Body: window.UFC.ProposedPanel,
 				} );
